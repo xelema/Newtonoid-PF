@@ -9,37 +9,53 @@ type vect = (float * float)
 
 type etat =  (float * float) * (float * float)
 
-(*Integre un flux dans un autre flux*)
-(*faut récréer un flux à chaque collision car calculs du flux plus bon *)
-let integre dt flux v0 =
-  
-  let iter (acc1, acc2) (flux1, flux2) =
-    (acc1 +. dt *. flux1, acc2 +. dt *. flux2) in
-                          
-  let rec acc =
-    Tick (lazy (Some (v0, Flux.map2 iter acc flux)))
-  in acc;;
-
-
 let g = 9.81 *. 50.(*consrtante gravité*)
-
-let calcul_traj dt (pos,vit) = 
-  (*Accélération*)
-  let flux_acc = Flux.constant (0.,-.g) in
-  (*Vitesse*)
-  let flux_vit = integre dt flux_acc vit in
-  (*Position*)
-  let flux_pos = integre dt flux_vit pos in
-
-  Flux.map2 (fun p v -> (p,v)) flux_pos flux_vit
-
-(*prise en conmpte des rebond seulement de la boite pour le moment*)
-let rec run dt (pos,vit) =
-  Flux.unless (calcul_traj dt (pos,vit)) Collisions.contact_boite (fun etat_actuel ->
-    let nouvel_etat = Collisions.rebond_boite etat_actuel in
-    run dt nouvel_etat)
+let rayon_balle = 10.
 
 
+let calcul_traj dt etat = 
+  let (pos, vit) = etat in
+  let (px, py) = pos in
+  let (vx, vy) = vit in
+  
+  let (ax, ay) = (0., -.g) in
+  
+  let px_next = px +. vx *. dt +. 0.5 *. ax *. (dt *. dt) in
+  let py_next = py +. vy *. dt +. 0.5 *. ay *. (dt *. dt) in
+  
+  let vx_next = vx +. ax *. dt in
+  let vy_next = vy +. ay *. dt in
+
+  ((px_next, py_next), (vx_next, vy_next))
+
+
+let rec run dt etat_balle flux_barre =
+  Tick (lazy (
+    match Flux.uncons flux_barre with
+    | None -> None
+    | Some (barre, reste_barre) ->
+       
+       let etat_candidat = calcul_traj dt etat_balle in
+       
+       (* Detection collision *)
+       let (xmin, xmax, ymin, ymax, centre) = barre in
+       
+      
+       if Collisions.contact_boite etat_candidat || 
+          Collisions.contact etat_candidat rayon_balle (xmin, xmax, ymin, ymax) 
+       then
+          let etat_rebond = 
+            if Collisions.contact etat_candidat rayon_balle (xmin, xmax, ymin, ymax) then
+              Collisions.rebond_barre etat_candidat (xmin, xmax, ymin, ymax, centre)
+            else
+              Collisions.rebond_boite etat_candidat
+          in
+          (* On continue*)
+          Some ((etat_rebond, barre), run dt etat_rebond reste_barre)
+       else
+          (* Pas de collision*)
+          Some ((etat_candidat, barre), run dt etat_candidat reste_barre)
+  ))
 
 
 

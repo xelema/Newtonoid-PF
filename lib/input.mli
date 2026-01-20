@@ -1,3 +1,3 @@
 open Iterator
 
-val mouse : (float * bool) flux
+val mouse : unit -> (float * bool) flux 

@@ -2,7 +2,7 @@
 # OCAMLPARAM: unset
 # Shared cache: enabled-except-user-rules
 # Shared cache location: /home/csr6605/.cache/dune/db
-# Workspace root: /home/csr6605/2A/progra_fonc/projet/source
+# Workspace root: /home/csr6605/2A/progra_fonc/projet/source/Newtonoid-PF
 # Auto-detected concurrency: 4
 # Dune context:
 #  { name = "default"
@@ -13,7 +13,7 @@
 #  ; build_dir = In_build_dir "default"
 #  ; instrument_with = []
 #  }
-$ /applications/opam-5.3.0/5.3.0/bin/ocamlc.opt -config > /tmp/dune_571876_output
+$ /applications/opam-5.3.0/5.3.0/bin/ocamlc.opt -config > /tmp/dune_57c388_output
 $ (cd _build/default && .ppx/efcc4bee201c25260b4d99c3f6cc9332/ppx.exe --cookie 'inline_tests="enabled"' --cookie 'library-name="libnewtonoid"' -o lib/collisions.pp.ml --impl lib/collisions.ml -corrected-suffix .ppx-corrected -diff-cmd - -dump-ast)
 $ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamldep.opt -modules -impl lib/collisions.pp.ml) > _build/default/lib/.libnewtonoid.objs/libnewtonoid__Collisions.impl.d
 $ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlc.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -bin-annot -bin-annot-occurrences -I lib/.libnewtonoid.objs/byte -I /applications/opam-5.3.0/5.3.0/lib/base -I /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types -I /applications/opam-5.3.0/5.3.0/lib/base/shadow_stdlib -I /applications/opam-5.3.0/5.3.0/lib/graphics -I /applications/opam-5.3.0/5.3.0/lib/jane-street-headers -I /applications/opam-5.3.0/5.3.0/lib/ocaml/unix -I /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel -I /applications/opam-5.3.0/5.3.0/lib/ppx_compare/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_enumerate/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_hash/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/config -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_sexp_conv/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/sexplib0 -I /applications/opam-5.3.0/5.3.0/lib/time_now -no-alias-deps -opaque -open Libnewtonoid -o lib/.libnewtonoid.objs/byte/libnewtonoid__Collisions.cmo -c -impl lib/collisions.pp.ml)
@@ -22,45 +22,74 @@ $ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlc.opt -w @1..3@5
 >     ^^^^^^^^^^^^^
 > Warning 33 [unused-open]: unused open Libnewtonoid.Iterator.
 >
-> File "lib/collisions.ml", line 17, characters 20-22:
-> 17 | let contact((x,y), (vx, vy)) (x_gauche,y_bas) (x_droite, y_haut) =
+> File "lib/collisions.ml", line 19, characters 20-22:
+> 19 | let contact((x,y), (vx, vy)) rayon (xmin, xmax, ymin, ymax) =
 >                          ^^
 > Warning 27 [unused-var-strict]: unused variable vx.
 >
-> File "lib/collisions.ml", line 17, characters 24-26:
-> 17 | let contact((x,y), (vx, vy)) (x_gauche,y_bas) (x_droite, y_haut) =
+> File "lib/collisions.ml", line 19, characters 24-26:
+> 19 | let contact((x,y), (vx, vy)) rayon (xmin, xmax, ymin, ymax) =
 >                              ^^
 > Warning 27 [unused-var-strict]: unused variable vy.
+>
+> File "lib/collisions.ml", line 28, characters 49-53:
+> 28 | let rebond_barre ((x, y), (vx, vy)) (xmin, xmax, ymin, ymax, centre) =
+>                                                       ^^^^
+> Warning 27 [unused-var-strict]: unused variable ymin.
+>
+> File "lib/collisions.ml", line 28, characters 55-59:
+> 28 | let rebond_barre ((x, y), (vx, vy)) (xmin, xmax, ymin, ymax, centre) =
+>                                                             ^^^^
+> Warning 27 [unused-var-strict]: unused variable ymax.
 $ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -I lib/.libnewtonoid.objs/byte -I lib/.libnewtonoid.objs/native -I /applications/opam-5.3.0/5.3.0/lib/base -I /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types -I /applications/opam-5.3.0/5.3.0/lib/base/shadow_stdlib -I /applications/opam-5.3.0/5.3.0/lib/graphics -I /applications/opam-5.3.0/5.3.0/lib/jane-street-headers -I /applications/opam-5.3.0/5.3.0/lib/ocaml/unix -I /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel -I /applications/opam-5.3.0/5.3.0/lib/ppx_compare/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_enumerate/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_hash/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/config -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_sexp_conv/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/sexplib0 -I /applications/opam-5.3.0/5.3.0/lib/time_now -cmi-file lib/.libnewtonoid.objs/byte/libnewtonoid__Collisions.cmi -no-alias-deps -opaque -open Libnewtonoid -o lib/.libnewtonoid.objs/native/libnewtonoid__Collisions.cmx -c -impl lib/collisions.pp.ml)
 > File "lib/collisions.ml", line 1, characters 0-13:
 > 1 | open Iterator
 >     ^^^^^^^^^^^^^
 > Warning 33 [unused-open]: unused open Libnewtonoid.Iterator.
 >
-> File "lib/collisions.ml", line 17, characters 20-22:
-> 17 | let contact((x,y), (vx, vy)) (x_gauche,y_bas) (x_droite, y_haut) =
+> File "lib/collisions.ml", line 19, characters 20-22:
+> 19 | let contact((x,y), (vx, vy)) rayon (xmin, xmax, ymin, ymax) =
 >                          ^^
 > Warning 27 [unused-var-strict]: unused variable vx.
 >
-> File "lib/collisions.ml", line 17, characters 24-26:
-> 17 | let contact((x,y), (vx, vy)) (x_gauche,y_bas) (x_droite, y_haut) =
+> File "lib/collisions.ml", line 19, characters 24-26:
+> 19 | let contact((x,y), (vx, vy)) rayon (xmin, xmax, ymin, ymax) =
 >                              ^^
 > Warning 27 [unused-var-strict]: unused variable vy.
+>
+> File "lib/collisions.ml", line 28, characters 49-53:
+> 28 | let rebond_barre ((x, y), (vx, vy)) (xmin, xmax, ymin, ymax, centre) =
+>                                                       ^^^^
+> Warning 27 [unused-var-strict]: unused variable ymin.
+>
+> File "lib/collisions.ml", line 28, characters 55-59:
+> 28 | let rebond_barre ((x, y), (vx, vy)) (xmin, xmax, ymin, ymax, centre) =
+>                                                             ^^^^
+> Warning 27 [unused-var-strict]: unused variable ymax.
+$ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlc.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -bin-annot -bin-annot-occurrences -I lib/.libnewtonoid.objs/byte -I /applications/opam-5.3.0/5.3.0/lib/base -I /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types -I /applications/opam-5.3.0/5.3.0/lib/base/shadow_stdlib -I /applications/opam-5.3.0/5.3.0/lib/graphics -I /applications/opam-5.3.0/5.3.0/lib/jane-street-headers -I /applications/opam-5.3.0/5.3.0/lib/ocaml/unix -I /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel -I /applications/opam-5.3.0/5.3.0/lib/ppx_compare/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_enumerate/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_hash/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/config -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_sexp_conv/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/sexplib0 -I /applications/opam-5.3.0/5.3.0/lib/time_now -no-alias-deps -opaque -open Libnewtonoid -o lib/.libnewtonoid.objs/byte/libnewtonoid__Barreau.cmo -c -impl lib/barreau.pp.ml)
+> File "lib/barreau.ml", line 2, characters 0-15:
+> 2 | open Collisions
+>     ^^^^^^^^^^^^^^^
+> Warning 33 [unused-open]: unused open Libnewtonoid.Collisions.
 $ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlc.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -bin-annot -bin-annot-occurrences -I lib/.libnewtonoid.objs/byte -I /applications/opam-5.3.0/5.3.0/lib/base -I /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types -I /applications/opam-5.3.0/5.3.0/lib/base/shadow_stdlib -I /applications/opam-5.3.0/5.3.0/lib/graphics -I /applications/opam-5.3.0/5.3.0/lib/jane-street-headers -I /applications/opam-5.3.0/5.3.0/lib/ocaml/unix -I /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel -I /applications/opam-5.3.0/5.3.0/lib/ppx_compare/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_enumerate/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_hash/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/config -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_sexp_conv/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/sexplib0 -I /applications/opam-5.3.0/5.3.0/lib/time_now -no-alias-deps -opaque -open Libnewtonoid -o lib/.libnewtonoid.objs/byte/libnewtonoid__Game.cmo -c -impl lib/game.pp.ml)
 > File "lib/game.ml", line 2, characters 0-15:
 > 2 | open Collisions
 >     ^^^^^^^^^^^^^^^
 > Warning 33 [unused-open]: unused open Libnewtonoid.Collisions.
+$ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -I lib/.libnewtonoid.objs/byte -I lib/.libnewtonoid.objs/native -I /applications/opam-5.3.0/5.3.0/lib/base -I /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types -I /applications/opam-5.3.0/5.3.0/lib/base/shadow_stdlib -I /applications/opam-5.3.0/5.3.0/lib/graphics -I /applications/opam-5.3.0/5.3.0/lib/jane-street-headers -I /applications/opam-5.3.0/5.3.0/lib/ocaml/unix -I /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel -I /applications/opam-5.3.0/5.3.0/lib/ppx_compare/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_enumerate/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_hash/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/config -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_sexp_conv/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/sexplib0 -I /applications/opam-5.3.0/5.3.0/lib/time_now -cmi-file lib/.libnewtonoid.objs/byte/libnewtonoid__Barreau.cmi -no-alias-deps -opaque -open Libnewtonoid -o lib/.libnewtonoid.objs/native/libnewtonoid__Barreau.cmx -c -impl lib/barreau.pp.ml)
+> File "lib/barreau.ml", line 2, characters 0-15:
+> 2 | open Collisions
+>     ^^^^^^^^^^^^^^^
+> Warning 33 [unused-open]: unused open Libnewtonoid.Collisions.
+$ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlc.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -bin-annot -bin-annot-occurrences -I bin/.newtonoid.eobjs/byte -I /applications/opam-5.3.0/5.3.0/lib/base -I /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types -I /applications/opam-5.3.0/5.3.0/lib/base/shadow_stdlib -I /applications/opam-5.3.0/5.3.0/lib/graphics -I /applications/opam-5.3.0/5.3.0/lib/jane-street-headers -I /applications/opam-5.3.0/5.3.0/lib/ocaml/unix -I /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel -I /applications/opam-5.3.0/5.3.0/lib/ppx_compare/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_enumerate/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_hash/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/config -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_sexp_conv/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/sexplib0 -I /applications/opam-5.3.0/5.3.0/lib/time_now -I lib/.libnewtonoid.objs/byte -no-alias-deps -opaque -o bin/.newtonoid.eobjs/byte/dune__exe__Newtonoid.cmi -c -intf bin/newtonoid.mli)
 $ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -I lib/.libnewtonoid.objs/byte -I lib/.libnewtonoid.objs/native -I /applications/opam-5.3.0/5.3.0/lib/base -I /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types -I /applications/opam-5.3.0/5.3.0/lib/base/shadow_stdlib -I /applications/opam-5.3.0/5.3.0/lib/graphics -I /applications/opam-5.3.0/5.3.0/lib/jane-street-headers -I /applications/opam-5.3.0/5.3.0/lib/ocaml/unix -I /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel -I /applications/opam-5.3.0/5.3.0/lib/ppx_compare/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_enumerate/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_hash/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/config -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_sexp_conv/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/sexplib0 -I /applications/opam-5.3.0/5.3.0/lib/time_now -cmi-file lib/.libnewtonoid.objs/byte/libnewtonoid__Game.cmi -no-alias-deps -opaque -open Libnewtonoid -o lib/.libnewtonoid.objs/native/libnewtonoid__Game.cmx -c -impl lib/game.pp.ml)
 > File "lib/game.ml", line 2, characters 0-15:
 > 2 | open Collisions
 >     ^^^^^^^^^^^^^^^
 > Warning 33 [unused-open]: unused open Libnewtonoid.Collisions.
-$ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlc.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -bin-annot -bin-annot-occurrences -I bin/.newtonoid.eobjs/byte -I /applications/opam-5.3.0/5.3.0/lib/base -I /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types -I /applications/opam-5.3.0/5.3.0/lib/base/shadow_stdlib -I /applications/opam-5.3.0/5.3.0/lib/graphics -I /applications/opam-5.3.0/5.3.0/lib/jane-street-headers -I /applications/opam-5.3.0/5.3.0/lib/ocaml/unix -I /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel -I /applications/opam-5.3.0/5.3.0/lib/ppx_compare/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_enumerate/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_hash/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/config -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_sexp_conv/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/sexplib0 -I /applications/opam-5.3.0/5.3.0/lib/time_now -I lib/.libnewtonoid.objs/byte -no-alias-deps -opaque -o bin/.newtonoid.eobjs/byte/dune__exe__Newtonoid.cmi -c -intf bin/newtonoid.mli)
-$ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -a -o lib/libnewtonoid.cmxa lib/.libnewtonoid.objs/native/libnewtonoid.cmx lib/.libnewtonoid.objs/native/libnewtonoid__Iterator.cmx lib/.libnewtonoid.objs/native/libnewtonoid__Input.cmx lib/.libnewtonoid.objs/native/libnewtonoid__Collisions.cmx lib/.libnewtonoid.objs/native/libnewtonoid__Game.cmx)
 $ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -I bin/.newtonoid.eobjs/byte -I bin/.newtonoid.eobjs/native -I /applications/opam-5.3.0/5.3.0/lib/base -I /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types -I /applications/opam-5.3.0/5.3.0/lib/base/shadow_stdlib -I /applications/opam-5.3.0/5.3.0/lib/graphics -I /applications/opam-5.3.0/5.3.0/lib/jane-street-headers -I /applications/opam-5.3.0/5.3.0/lib/ocaml/unix -I /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel -I /applications/opam-5.3.0/5.3.0/lib/ppx_compare/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_enumerate/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_hash/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/config -I /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/ppx_sexp_conv/runtime-lib -I /applications/opam-5.3.0/5.3.0/lib/sexplib0 -I /applications/opam-5.3.0/5.3.0/lib/time_now -I lib/.libnewtonoid.objs/byte -I lib/.libnewtonoid.objs/native -cmi-file bin/.newtonoid.eobjs/byte/dune__exe__Newtonoid.cmi -no-alias-deps -opaque -o bin/.newtonoid.eobjs/native/dune__exe__Newtonoid.cmx -c -impl bin/newtonoid.ml)
-> File "bin/newtonoid.ml", line 49, characters 6-7:
-> 49 |     | _ -> assert false
+> File "bin/newtonoid.ml", line 57, characters 6-7:
+> 57 |     | _ -> assert false
 >            ^
 > Warning 11 [redundant-case]: this match case is unused.
 >
@@ -69,18 +98,24 @@ $ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlopt.opt -w @1..3
 >     ^^^^^^^^^
 > Warning 33 [unused-open]: unused open Libnewtonoid.Game.
 >
-> File "bin/newtonoid.ml", line 28, characters 11-15:
-> 28 |   | (x,y),(vitx,vity) -> 
->                 ^^^^
+> File "bin/newtonoid.ml", line 27, characters 15-19:
+> 27 |   let (x, y), (vitx, vity) = etat in
+>                     ^^^^
 > Warning 27 [unused-var-strict]: unused variable vitx.
 >
-> File "bin/newtonoid.ml", line 28, characters 16-20:
-> 28 |   | (x,y),(vitx,vity) -> 
->                      ^^^^
+> File "bin/newtonoid.ml", line 27, characters 21-25:
+> 27 |   let (x, y), (vitx, vity) = etat in
+>                           ^^^^
 > Warning 27 [unused-var-strict]: unused variable vity.
 >
-> File "bin/newtonoid.ml", line 35, characters 10-14:
-> 35 | let score etat : int = 0
+> File "bin/newtonoid.ml", line 34, characters 31-32:
+> 34 |   let (xmin, xmax, ymin, ymax, c) = barre in
+>                                     ^
+> Warning 27 [unused-var-strict]: unused variable c.
+>
+> File "bin/newtonoid.ml", line 43, characters 10-14:
+> 43 | let score etat : int = 0
 >                ^^^^
 > Warning 27 [unused-var-strict]: unused variable etat.
+$ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -a -o lib/libnewtonoid.cmxa lib/.libnewtonoid.objs/native/libnewtonoid.cmx lib/.libnewtonoid.objs/native/libnewtonoid__Iterator.cmx lib/.libnewtonoid.objs/native/libnewtonoid__Input.cmx lib/.libnewtonoid.objs/native/libnewtonoid__Collisions.cmx lib/.libnewtonoid.objs/native/libnewtonoid__Game.cmx lib/.libnewtonoid.objs/native/libnewtonoid__Barreau.cmx)
 $ (cd _build/default && /applications/opam-5.3.0/5.3.0/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -warn-error -A -g -o bin/newtonoid.exe /applications/opam-5.3.0/5.3.0/lib/ocaml/unix/unix.cmxa /applications/opam-5.3.0/5.3.0/lib/graphics/graphics.cmxa -I /applications/opam-5.3.0/5.3.0/lib/graphics /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/config/inline_test_config.cmxa /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types/base_internalhash_types.cmxa -I /applications/opam-5.3.0/5.3.0/lib/base/base_internalhash_types /applications/opam-5.3.0/5.3.0/lib/sexplib0/sexplib0.cmxa /applications/opam-5.3.0/5.3.0/lib/base/shadow_stdlib/shadow_stdlib.cmxa /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel/ocaml_intrinsics_kernel.cmxa -I /applications/opam-5.3.0/5.3.0/lib/ocaml_intrinsics_kernel /applications/opam-5.3.0/5.3.0/lib/base/base.cmxa -I /applications/opam-5.3.0/5.3.0/lib/base /applications/opam-5.3.0/5.3.0/lib/jane-street-headers/jane_street_headers.cmxa /applications/opam-5.3.0/5.3.0/lib/ppx_sexp_conv/runtime-lib/ppx_sexp_conv_lib.cmxa /applications/opam-5.3.0/5.3.0/lib/ppx_compare/runtime-lib/ppx_compare_lib.cmxa /applications/opam-5.3.0/5.3.0/lib/ppx_enumerate/runtime-lib/ppx_enumerate_lib.cmxa /applications/opam-5.3.0/5.3.0/lib/ppx_hash/runtime-lib/ppx_hash_lib.cmxa /applications/opam-5.3.0/5.3.0/lib/time_now/time_now.cmxa -I /applications/opam-5.3.0/5.3.0/lib/time_now /applications/opam-5.3.0/5.3.0/lib/ppx_inline_test/runtime-lib/ppx_inline_test_lib.cmxa lib/libnewtonoid.cmxa bin/.newtonoid.eobjs/native/dune__exe__Newtonoid.cmx)
