@@ -23,16 +23,37 @@ let graphic_format =
     (int_of_float ((2. *. Box.marge) +. Box.supx -. Box.infx))
     (int_of_float ((2. *. Box.marge) +. Box.supy -. Box.infy))
 
-let draw_state etat = 
-  match etat with
-  | (x,y),(vitx,vity) -> 
-    let int_x = int_of_float x in
-    let int_y = int_of_float y in
-    Graphics.set_color Graphics.black;
-    Graphics.fill_circle int_x int_y 10
+(* Dessiner une brique *)
+let draw_brick (brick : Brick.brick) =
+  Graphics.set_color brick.color;
+  Graphics.fill_rect
+    (int_of_float brick.x)
+    (int_of_float brick.y)
+    (int_of_float brick.width)
+    (int_of_float brick.height);
+  Graphics.set_color Graphics.black;
+  Graphics.draw_rect
+    (int_of_float brick.x)
+    (int_of_float brick.y)
+    (int_of_float brick.width)
+    (int_of_float brick.height)
 
-(* extrait le score courant d'un etat : *)
-let score etat : int = 0
+(* Dessiner toutes les briques *)
+let draw_bricks bricks =
+  List.iter draw_brick bricks
+
+let draw_state etat =
+  (* Dessiner les briques *)
+  draw_bricks etat.bricks;
+  (* Dessiner la balle *)
+  let (x, y) = etat.ball_pos in
+  let int_x = int_of_float x in
+  let int_y = int_of_float y in
+  Graphics.set_color Graphics.black;
+  Graphics.fill_circle int_x int_y 10;
+  (* Afficher le score *)
+  Graphics.moveto 10 5;
+  Graphics.draw_string (Format.sprintf "Score: %d" etat.score)
 
 let draw flux_etat =
   let rec loop flux_etat last_score =
@@ -40,13 +61,10 @@ let draw flux_etat =
     | None -> last_score
     | Some (etat, flux_etat') ->
       Graphics.clear_graph ();
-      (* DESSIN ETAT *)
       draw_state etat;
-      (* FIN DESSIN ETAT *)
       Graphics.synchronize ();
       Unix.sleepf Init.dt;
-      loop flux_etat' (last_score + score etat)
-    | _ -> assert false
+      loop flux_etat' etat.score
   in
   Graphics.open_graph graphic_format;
   Graphics.auto_synchronize false;
@@ -54,8 +72,13 @@ let draw flux_etat =
   Format.printf "Score final : %d@\n" score;
   Graphics.close_graph ()
 
-let () = 
+let () =
   let dt = Init.dt in
-  let init = ((400.,500.),(250., 0.)) in
+  let init : Game.etat = {
+    ball_pos = (400., 300.);
+    ball_vel = (250., 200.);
+    bricks = Layout.classic ();
+    score = 0;
+  } in
   let flux_jeu = Game.run dt init in
   draw flux_jeu
