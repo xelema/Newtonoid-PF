@@ -5,13 +5,16 @@ open Collisions
 (*x et y*)
 type vect = (float * float)
 
-(* État du jeu incluant les briques *)
 type etat = {
   ball_pos : float * float;
   ball_vel : float * float;
   bricks   : Brick.bricks;
   score    : int;
+  lives    : int;
 }
+
+let respawn_pos = (400., 100.)
+let respawn_vel = (250., 200.)
 
 let ball_radius = 10.0
 
@@ -51,8 +54,17 @@ let rec run dt etat =
   (* Transformer en flux d'état *)
   let etat_flux = Flux.map (fun (p, v) -> { etat with ball_pos = p; ball_vel = v }) ball_flux in
 
-  (* Gérer collisions avec les murs *)
-  let after_walls = Flux.unless etat_flux
+  (* Gérer la chute de balle (perte de vie) *)
+  let after_fall = Flux.unless etat_flux
+    (fun e -> Collisions.ball_fallen (e.ball_pos, e.ball_vel))
+    (fun e ->
+      (* La balle est tombee, on termine le flux avec l'etat mis a jour *)
+      let new_lives = e.lives - 1 in
+      Flux.cons { e with lives = new_lives; ball_pos = respawn_pos; ball_vel = (0., 0.) } Flux.vide
+    ) in
+
+  (* Gérer collisions avec les murs (haut, gauche, droite) *)
+  let after_walls = Flux.unless after_fall
     (fun e -> Collisions.contact_boite (e.ball_pos, e.ball_vel))
     (fun e ->
       let (new_pos, new_vel) = Collisions.rebond_boite (e.ball_pos, e.ball_vel) in
@@ -69,5 +81,5 @@ let rec run dt etat =
         let (new_pos, new_vel) = Collisions.rebond_brick (e.ball_pos, e.ball_vel) brick in
         let new_bricks = Brick.remove_brick brick e.bricks in
         let new_score = e.score + brick.value in
-        run dt { ball_pos = new_pos; ball_vel = new_vel; bricks = new_bricks; score = new_score }
+        run dt { e with ball_pos = new_pos; ball_vel = new_vel; bricks = new_bricks; score = new_score }
     )

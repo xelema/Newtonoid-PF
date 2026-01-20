@@ -5,13 +5,18 @@ open Iterator
 let x_min, x_max = 10.0, 790.0
 let y_min, y_max = 10.0, 590.0
 
+(* Contact avec les bords (haut, gauche, droite) - PAS le bas *)
 let contact_boite ((x,y), (vx, vy)) =
-  (x < x_min && vx < 0.0)|| (x > x_max && vx > 0.0)||
-  (y < y_min && vy < 0.0)|| (y > y_max && vy > 0.0)
+  (x < x_min && vx < 0.0) || (x > x_max && vx > 0.0) ||
+  (y > y_max && vy > 0.0)
 
+(* Detecte si la balle est tombee sous le bord bas *)
+let ball_fallen ((_x, y), _vel) = y < y_min
+
+(* Rebond sur les bords (haut, gauche, droite) - PAS le bas *)
 let rebond_boite ((x, y), (vx, vy)) =
   let nv_vx = if (x < x_min && vx < 0.0) || (x > x_max && vx > 0.0) then -.vx else vx in
-  let nv_vy = if (y < y_min && vy < 0.0) || (y > y_max && vy > 0.0) then -.vy else vy in
+  let nv_vy = if (y > y_max && vy > 0.0) then -.vy else vy in
   ((x, y), (nv_vx, nv_vy))
 
 let contact ((x, y), (_vx, _vy)) (x_gauche, y_bas) (x_droite, y_haut) =
