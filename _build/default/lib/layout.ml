@@ -33,13 +33,22 @@ let default_config = {
 }
 
 let make_grid config =
-  List.init config.rows (fun row ->
-    List.init config.cols (fun col ->
-      let x = config.start_x +. float_of_int col *. (config.brick_width +. config.gap_x) in
-      let y = config.start_y +. float_of_int row *. (config.brick_height +. config.gap_y) in
-      Brick.{ x; y; width = config.brick_width; height = config.brick_height;
+  let list_bricks =
+    List.init config.rows (fun row ->
+      List.init config.cols (fun col ->
+        let x = config.start_x +. float_of_int col *. (config.brick_width +. config.gap_x) in
+        let y = config.start_y +. float_of_int row *. (config.brick_height +. config.gap_y) in
+        Brick.{ x; y; width = config.brick_width; height = config.brick_height;
               value = config.value_fn row col; color = config.color_fn row col }
-    )
-  ) |> List.flatten
+      )
+    ) |> List.flatten
+  in
+  let global_box = { 
+    Brick.xmin = 0.0; 
+    Brick.xmax = 800.0; 
+    Brick.ymin = 0.0; 
+    Brick.ymax = 600.0 
+  } in
+  Brick.build_tree global_box list_bricks
 
 let classic () = make_grid default_config

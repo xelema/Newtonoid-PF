@@ -13,7 +13,7 @@ let rebond_boite ((x, y), (vx, vy)) =
   let nv_x = if x < x_min then x_min else if x > x_max then x_max else x in
   let nv_y = if y < y_min then y_min else if y > y_max then y_max else y in
   let nv_vx = if (x < x_min && vx < 0.0) || (x > x_max && vx > 0.0) then -.vx else vx in
-  let nv_vy = if (y < y_min && vy < 0.0) || (y > y_max && vy > 0.0) then -.vy else vy in
+  let nv_vy = if (y > y_max && vy > 0.0) then -.vy else vy in
   ((nv_x, nv_y), (nv_vx, nv_vy))
 
 let contact((x,y), (vx, vy)) rayon (xmin, xmax, ymin, ymax) =
@@ -27,21 +27,35 @@ let rebond ((x, y), (vx, vy)) (xmin, xmax, ymin, ymax) =
 
 
 (* Collision cercle (balle) avec AABB (brique) *)
-let circle_aabb_contact (cx, cy) radius bx by width height =
-  (* Point le plus proche sur l'AABB au centre du cercle *)
-  let closest_x = max bx (min cx (bx +. width)) in
-  let closest_y = max by (min cy (by +. height)) in
-  (* Distance au carré *)
+let circle_aabb_contact (cx, cy) r box =
+  let closest_x = max box.Brick.xmin (min cx box.xmax) in
+  let closest_y = max box.ymin (min cy box.ymax) in
   let dx = cx -. closest_x in
   let dy = cy -. closest_y in
-  dx *. dx +. dy *. dy < radius *. radius
+  (dx *. dx) +. (dy *. dy) <= (r *. r)
 
 (* Trouver la première brique en collision *)
-let find_colliding_brick (pos, _vel) bricks radius =
-  let (cx, cy) = pos in
-  List.find_opt (fun (b : Brick.brick) ->
-    circle_aabb_contact (cx, cy) radius b.x b.y b.width b.height
-  ) bricks
+let rec find_colliding_brick (pos, vel) tree radius =
+  match tree with
+  | Brick.Empty -> None
+  | Brick.Leaf l ->
+    let (cx, cy) = pos in
+    List.find_opt (fun (b : Brick.brick) ->
+      (* On crée une box à la volée pour correspondre à la brique *)
+      let b_box = { Brick.xmin = b.x; Brick.xmax = b.x +. b.width; 
+                    Brick.ymin = b.y; Brick.ymax = b.y +. b.height } in
+      circle_aabb_contact (cx, cy) radius b_box
+    ) l
+  | Brick.Node (box, nw, ne, sw, se) ->
+      if circle_aabb_contact pos radius box then
+        match find_colliding_brick (pos, vel) nw radius with
+        | Some b -> Some b
+        | None -> match find_colliding_brick (pos, vel) ne radius with
+        | Some b -> Some b
+        | None -> match find_colliding_brick (pos, vel) sw radius with
+        | Some b -> Some b
+        | None -> find_colliding_brick (pos, vel) se radius
+      else None
 
 (* Calculer le rebond sur une brique *)
 let rebond_brick ((cx, cy), (vx, vy)) (brick : Brick.brick) =

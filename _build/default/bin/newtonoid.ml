@@ -39,8 +39,11 @@ let draw_brick (brick : Brick.brick) =
     (int_of_float brick.height)
 
 (* Dessiner toutes les briques *)
-let draw_bricks bricks =
-  List.iter draw_brick bricks
+let rec draw_bricks = function
+  | Brick.Empty -> ()
+  | Brick.Leaf l -> List.iter draw_brick l
+  | Brick.Node (_, nw, ne, sw, se) ->
+      draw_bricks nw; draw_bricks ne; draw_bricks sw; draw_bricks se
 
 let draw_state (etat, barre) =
   (* Dessiner les briques *)
@@ -61,36 +64,47 @@ let draw_state (etat, barre) =
   Graphics.fill_circle int_x int_y 10;
   (* Afficher le score *)
   Graphics.moveto 10 5;
-  Graphics.draw_string (Format.sprintf "Score: %d" etat.score)
+  Graphics.draw_string (Format.sprintf "Score: %d" etat.score);
+  Graphics.moveto 10 20;
+  Graphics.draw_string (Format.sprintf "Vies: %d" etat.vies)
 
 
 let draw flux_etat =
-  let rec loop flux_etat last_score =
+  let rec loop flux_etat =
     match Flux.(uncons flux_etat) with
-    | None -> last_score
+    | None -> 
+        Graphics.set_color Graphics.red;
+        Graphics.moveto 350 300;
+        Graphics.draw_string "GAME OVER";
+        Graphics.synchronize ();
+        Unix.sleep 2
     | Some ((etat, barre), flux_etat') ->
-      Graphics.clear_graph ();
-      draw_state (etat, barre);
-      Graphics.synchronize ();
-      Unix.sleepf Init.dt;
-      loop flux_etat' etat.score
+        Graphics.clear_graph ();
+        draw_state (etat, barre);
+        Graphics.synchronize ();
+        Unix.sleepf Init.dt;
+        loop flux_etat'
   in
-  Graphics.open_graph graphic_format;
-  Graphics.auto_synchronize false;
-  let score = loop flux_etat 0 in
-  Format.printf "Score final : %d@\n" score;
-  Graphics.close_graph ()
+  loop flux_etat
 
 let () = 
   Graphics.open_graph " 800x600";
 
   let dt = Init.dt in
+  let game_box = { 
+    Brick.xmin = Box.infx; 
+    Brick.xmax = Box.supx; 
+    Brick.ymin = 0.0; (* On part du bas pour inclure toute la zone de vol *)
+    Brick.ymax = Box.supy 
+  } in
+  let liste_briques_initiale = Layout.classic () in
   let init : Game.etat = {
     ball_pos = (400., 300.);
     ball_vel = (0., 500.);
-    bricks = Layout.classic ();
+    bricks = liste_briques_initiale;
     score = 0;
-  }in
+    vies = 3;
+  } in
   let limites_cadre = (Box.infx, Box.supx) in
   let flux_barre = Barreau.flux_barre (Input.mouse ()) limites_cadre in
 
