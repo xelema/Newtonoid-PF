@@ -3,6 +3,9 @@
 (** @canonical Libnewtonoid.Barreau *)
 module Barreau = Libnewtonoid__Barreau
 
+(** @canonical Libnewtonoid.Brick *)
+module Brick = Libnewtonoid__Brick
+
 (** @canonical Libnewtonoid.Collisions *)
 module Collisions = Libnewtonoid__Collisions
 
@@ -14,3 +17,6 @@ module Input = Libnewtonoid__Input
 
 (** @canonical Libnewtonoid.Iterator *)
 module Iterator = Libnewtonoid__Iterator
+
+(** @canonical Libnewtonoid.Layout *)
+module Layout = Libnewtonoid__Layout

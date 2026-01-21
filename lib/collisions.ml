@@ -24,10 +24,51 @@ let rebond ((x, y), (vx, vy)) (xmin, xmax, ymin, ymax) =
   let nv_vy = if y < ymin || y > ymax then -.vy else vy in
   ((x, y), (nv_vx, nv_vy))
 
+
+
+(* Collision cercle (balle) avec AABB (brique) *)
+let circle_aabb_contact (cx, cy) radius bx by width height =
+  (* Point le plus proche sur l'AABB au centre du cercle *)
+  let closest_x = max bx (min cx (bx +. width)) in
+  let closest_y = max by (min cy (by +. height)) in
+  (* Distance au carré *)
+  let dx = cx -. closest_x in
+  let dy = cy -. closest_y in
+  dx *. dx +. dy *. dy < radius *. radius
+
+(* Trouver la première brique en collision *)
+let find_colliding_brick (pos, _vel) bricks radius =
+  let (cx, cy) = pos in
+  List.find_opt (fun (b : Brick.brick) ->
+    circle_aabb_contact (cx, cy) radius b.x b.y b.width b.height
+  ) bricks
+
+(* Calculer le rebond sur une brique *)
+let rebond_brick ((cx, cy), (vx, vy)) (brick : Brick.brick) =
+  (* Point le plus proche sur la brique *)
+  let closest_x = max brick.x (min cx (brick.x +. brick.width)) in
+  let closest_y = max brick.y (min cy (brick.y +. brick.height)) in
+
+  (* Vecteur de collision *)
+  let dx = cx -. closest_x in
+  let dy = cy -. closest_y in
+
+  (* Déterminer le côté de collision *)
+  let (nv_vx, nv_vy) =
+    if abs_float dx > abs_float dy then
+      (* Collision horizontale *)
+      (-.vx, vy)
+    else
+      (* Collision verticale *)
+      (vx, -.vy)
+  in
+  ((cx, cy), (nv_vx, nv_vy))
+
 (*rebond de la barre différent pour l'angle x de rebond*)
 let rebond_barre ((x, y), (vx, vy)) (xmin, xmax, ymin, ymax, centre) =
   let largeur = xmax -. xmin in
   let diff = x -. centre in 
+
 
   let demi_largeur = largeur /. 2. in
   (*pour pas de pb de collision*)
