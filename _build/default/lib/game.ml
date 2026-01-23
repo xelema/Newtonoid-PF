@@ -44,15 +44,15 @@ let rec run dt etat flux_barre =
        let (pos_next, vel_next) = calcul_step dt (etat.ball_pos, etat.ball_vel) in
        let (_, y_next) = pos_next in
 
-       (*Détection de perte de balle (sortie par le bas)*)
+       (*Si la balle tombe*)
        if y_next < 10.0 then
-         if etat.vies <= 1 then 
+         if etat.vies <= 0 then 
            None (*Game over*)
          else
            (* On perd une vie et on replace la balle au centre *)
            let etat_reset = { etat with 
              vies = etat.vies - 1; 
-             ball_pos = (400., 300.); 
+             ball_pos = (400., 100.); 
              ball_vel = (0., 500.) 
            } in
            Some ((etat_reset, barre), run dt etat_reset reste_barre)

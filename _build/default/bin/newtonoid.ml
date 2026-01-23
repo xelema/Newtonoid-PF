@@ -1,8 +1,6 @@
-(* ouvre la bibliotheque de modules definis dans lib/ *)
+
 open Libnewtonoid
 open Iterator
-
-(* exemple d'ouvertue d'un tel module de la bibliotheque : *)
 open Game
 
 module Init = struct
@@ -46,8 +44,8 @@ let rec draw_bricks = function
       draw_bricks nw; draw_bricks ne; draw_bricks sw; draw_bricks se
 
 let draw_state (etat, barre) =
-  (* Dessiner les briques *)
   draw_bricks etat.bricks;
+
   (* Dessiner la barre *)
   let (xmin, xmax, ymin, ymax, c) = barre in
   Graphics.set_color Graphics.blue;
@@ -62,22 +60,32 @@ let draw_state (etat, barre) =
   let int_y = int_of_float y in
   Graphics.set_color Graphics.black;
   Graphics.fill_circle int_x int_y 10;
-  (* Afficher le score *)
+ 
   Graphics.moveto 10 5;
   Graphics.draw_string (Format.sprintf "Score: %d" etat.score);
   Graphics.moveto 10 20;
   Graphics.draw_string (Format.sprintf "Vies: %d" etat.vies)
 
 
+let rec wait_for_restart_key () =
+  let ev = Graphics.wait_next_event [Graphics.Key_pressed] in
+  match ev.Graphics.key with
+  | 'r' | 'R' -> true
+  | 'q' | 'Q' -> false
+  | _ -> wait_for_restart_key ()
+
 let draw flux_etat =
   let rec loop flux_etat =
     match Flux.(uncons flux_etat) with
     | None -> 
+        Graphics.clear_graph ();
         Graphics.set_color Graphics.red;
-        Graphics.moveto 350 300;
+        Graphics.moveto 320 320;
         Graphics.draw_string "GAME OVER";
+        Graphics.moveto 240 280;
+        Graphics.draw_string "R = Recommencer | Q = Quitter";
         Graphics.synchronize ();
-        Unix.sleep 2
+        wait_for_restart_key ()
     | Some ((etat, barre), flux_etat') ->
         Graphics.clear_graph ();
         draw_state (etat, barre);
@@ -89,24 +97,23 @@ let draw flux_etat =
 
 let () = 
   Graphics.open_graph " 800x600";
+  Graphics.auto_synchronize false;
 
-  let dt = Init.dt in
-  let game_box = { 
-    Brick.xmin = Box.infx; 
-    Brick.xmax = Box.supx; 
-    Brick.ymin = 0.0; (* On part du bas pour inclure toute la zone de vol *)
-    Brick.ymax = Box.supy 
-  } in
-  let liste_briques_initiale = Layout.classic () in
-  let init : Game.etat = {
-    ball_pos = (400., 300.);
-    ball_vel = (0., 500.);
-    bricks = liste_briques_initiale;
-    score = 0;
-    vies = 3;
-  } in
-  let limites_cadre = (Box.infx, Box.supx) in
-  let flux_barre = Barreau.flux_barre (Input.mouse ()) limites_cadre in
-
-  let flux_jeu = Game.run dt init flux_barre in
-  draw flux_jeu
+  let rec main_loop () =
+    let dt = Init.dt in
+    let liste_briques_initiale = Layout.classic () in
+    let init : Game.etat = {
+      ball_pos = (400., 100.);
+      ball_vel = (0., 500.);
+      bricks = liste_briques_initiale;
+      score = 0;
+      vies = 3;
+    } in
+    let limites_cadre = (Box.infx, Box.supx) in
+    let flux_barre = Barreau.flux_barre (Input.mouse ()) limites_cadre in
+    let flux_jeu = Game.run dt init flux_barre in
+    let restart = draw flux_jeu in
+    if restart then main_loop ()
+  in
+  main_loop ();
+  Graphics.close_graph ()
