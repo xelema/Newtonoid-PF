@@ -26,3 +26,5 @@ val in_box : brick -> box -> bool
 val remove_brick : brick -> bricks -> bricks
 
 val build_tree : box -> brick list -> bricks
+
+val is_empty : bricks -> bool

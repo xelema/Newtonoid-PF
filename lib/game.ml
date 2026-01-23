@@ -12,6 +12,7 @@ type etat = {
   bricks   : Brick.bricks;
   score    : int;
   vies     : int;
+  niveau   : int;
 }
 
 let ball_radius = 10.0
@@ -70,14 +71,30 @@ let rec run dt etat flux_barre =
               let (new_pos, new_vel) = Collisions.rebond_brick (pos_next, vel_next) brick in
               let new_bricks = Brick.remove_brick brick etat.bricks in
               let new_score = etat.score + brick.value in
-              let nouvel_etat = { 
-                ball_pos = new_pos; 
-                ball_vel = new_vel; 
-                bricks = new_bricks; 
-                score = new_score;
-                vies = etat.vies
-              } in
-              Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
+              
+              (* Verifier si toutes les briques sont cassees (victoire niveau) *)
+              if Brick.is_empty new_bricks then
+                (* Passer au niveau suivant *)
+                let next_niveau = etat.niveau + 1 in
+                let nouvel_etat = {
+                  ball_pos = (400., 100.);
+                  ball_vel = (0., 500.);
+                  bricks = Layout.get_level next_niveau;
+                  score = new_score;
+                  vies = etat.vies;
+                  niveau = next_niveau;
+                } in
+                Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
+              else
+                let nouvel_etat = { 
+                  ball_pos = new_pos; 
+                  ball_vel = new_vel; 
+                  bricks = new_bricks; 
+                  score = new_score;
+                  vies = etat.vies;
+                  niveau = etat.niveau;
+                } in
+                Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
           | None ->
               (* Pas de collision avec les briques, vérifier boite et barre *)
               if Collisions.contact_boite (pos_next, vel_next) then

@@ -61,10 +61,10 @@ let draw_state (etat, barre) =
   Graphics.set_color Graphics.black;
   Graphics.fill_circle int_x int_y 10;
  
+  (* Afficher niveau, score et vies *)
   Graphics.moveto 10 5;
-  Graphics.draw_string (Format.sprintf "Score: %d" etat.score);
-  Graphics.moveto 10 20;
-  Graphics.draw_string (Format.sprintf "Vies: %d" etat.vies)
+  Graphics.draw_string (Format.sprintf "Niveau: %d  Score: %d  Vies: %d" 
+                          (etat.niveau + 1) etat.score etat.vies)
 
 
 let rec wait_for_restart_key () =
@@ -101,13 +101,13 @@ let () =
 
   let rec main_loop () =
     let dt = Init.dt in
-    let liste_briques_initiale = Layout.classic () in
     let init : Game.etat = {
       ball_pos = (400., 100.);
       ball_vel = (0., 500.);
-      bricks = liste_briques_initiale;
+      bricks = Layout.get_level 0;
       score = 0;
       vies = 3;
+      niveau = 0;
     } in
     let limites_cadre = (Box.infx, Box.supx) in
     let flux_barre = Barreau.flux_barre (Input.mouse ()) limites_cadre in

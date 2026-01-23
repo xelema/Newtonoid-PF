@@ -24,6 +24,14 @@ let rec remove_brick target = function
       Node (box, remove_brick target nw, remove_brick target ne, 
                  remove_brick target sw, remove_brick target se)
 
+(* Verifie si toutes les briques ont ete cassees *)
+let rec is_empty = function
+  | Empty -> true
+  | Leaf [] -> true
+  | Leaf _ -> false
+  | Node (_, nw, ne, sw, se) -> 
+      is_empty nw && is_empty ne && is_empty sw && is_empty se
+
 let rec build_tree box list_bricks =
   (* Condition d'arrêt : si peu de briques, on fait une feuille *)
   if List.length list_bricks <= 4 then

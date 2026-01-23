@@ -14,3 +14,4 @@ type config = {
 val default_config : config
 val make_grid : config -> Brick.bricks
 val classic : unit -> Brick.bricks
+val get_level : int -> Brick.bricks
