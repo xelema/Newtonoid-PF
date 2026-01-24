@@ -108,6 +108,7 @@ let () =
       score = 0;
       vies = 3;
       niveau = 0;
+      prev_barre_centre = 400.;
     } in
     let limites_cadre = (Box.infx, Box.supx) in
     let flux_barre = Barreau.flux_barre (Input.mouse ()) limites_cadre in

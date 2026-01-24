@@ -78,25 +78,13 @@ let rebond_brick ((cx, cy), (vx, vy)) (brick : Brick.brick) =
   in
   ((cx, cy), (nv_vx, nv_vy))
 
-(*rebond de la barre différent pour l'angle x de rebond*)
-let rebond_barre ((x, y), (vx, vy)) (xmin, xmax, ymin, ymax, centre) =
-  let largeur = xmax -. xmin in
-  let diff = x -. centre in 
+(*rebond sur la barre avec impulsion du mouvement*)
+let rebond_barre ((x, y), (vx, vy)) barre_vel =
+  (* Rebond simple: inverser la vitesse verticale *)
+  let nv_vy = abs_float vy in
 
+  (* Ajouter l'impulsion horizontale de la raquette *)
+  let coefficient_impulsion = 0.5 in
+  let nv_vx = vx +. (barre_vel *. coefficient_impulsion) in
 
-  let demi_largeur = largeur /. 2. in
-  (*pour pas de pb de collision*)
-  let diff = max (-.demi_largeur) (min demi_largeur diff) in
-  
-  let proportion = diff /. demi_largeur in 
-  
-  (*pas d'angle plat*)
-  let max_angle = 1.2 in 
-  let angle = proportion *. max_angle in
-  
-  let vitesse = sqrt (vx *. vx +. vy *. vy) in
-  
-  let nv_vx = vitesse *. sin angle in
-  let nv_vy = vitesse *. cos angle in
-  
-  ((x, y), (nv_vx, abs_float nv_vy))
+  ((x, y), (nv_vx, nv_vy))

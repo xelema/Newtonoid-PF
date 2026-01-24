@@ -13,6 +13,7 @@ type etat = {
   score    : int;
   vies     : int;
   niveau   : int;
+  prev_barre_centre : float;
 }
 
 let ball_radius = 10.0
@@ -41,26 +42,26 @@ let rec run dt etat flux_barre =
     match Flux.uncons flux_barre with
     | None -> None
     | Some (barre, reste_barre) ->
+       let (xmin, xmax, ymin, ymax, centre) = barre in
        (* Calculer la prochaine position de la balle *)
        let (pos_next, vel_next) = calcul_step dt (etat.ball_pos, etat.ball_vel) in
        let (_, y_next) = pos_next in
 
        (*Si la balle tombe*)
        if y_next < 10.0 then
-         if etat.vies <= 0 then 
+         if etat.vies <= 0 then
            None (*Game over*)
          else
            (* On perd une vie et on replace la balle au centre *)
-           let etat_reset = { etat with 
-             vies = etat.vies - 1; 
-             ball_pos = (400., 100.); 
-             ball_vel = (0., 500.) 
+           let etat_reset = { etat with
+             vies = etat.vies - 1;
+             ball_pos = (400., 100.);
+             ball_vel = (0., 500.);
+             prev_barre_centre = centre
            } in
            Some ((etat_reset, barre), run dt etat_reset reste_barre)
        else
-          let etat_next = { etat with ball_pos = pos_next; ball_vel = vel_next } in
-       
-          let (xmin, xmax, ymin, ymax, centre) = barre in
+          let etat_next = { etat with ball_pos = pos_next; ball_vel = vel_next; prev_barre_centre = centre } in
        
           (* Vérifier d'abord les collisions avec les briques *)
           let collision_brick = Collisions.find_colliding_brick (pos_next, vel_next) etat.bricks ball_radius in
@@ -83,16 +84,18 @@ let rec run dt etat flux_barre =
                   score = new_score;
                   vies = etat.vies;
                   niveau = next_niveau;
+                  prev_barre_centre = centre;
                 } in
                 Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
               else
-                let nouvel_etat = { 
-                  ball_pos = new_pos; 
-                  ball_vel = new_vel; 
-                  bricks = new_bricks; 
+                let nouvel_etat = {
+                  ball_pos = new_pos;
+                  ball_vel = new_vel;
+                  bricks = new_bricks;
                   score = new_score;
                   vies = etat.vies;
                   niveau = etat.niveau;
+                  prev_barre_centre = centre;
                 } in
                 Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
           | None ->
@@ -100,14 +103,15 @@ let rec run dt etat flux_barre =
               if Collisions.contact_boite (pos_next, vel_next) then
                 (* Collision avec les murs *)
                 let (new_pos, new_vel) = Collisions.rebond_boite (pos_next, vel_next) in
-                let nouvel_etat = { etat with ball_pos = new_pos; ball_vel = new_vel } in
+                let nouvel_etat = { etat with ball_pos = new_pos; ball_vel = new_vel; prev_barre_centre = centre } in
                 Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
               else if Collisions.contact (pos_next, vel_next) rayon_balle (xmin, xmax, ymin, ymax) then
                 (* Collision avec la barre *)
-                let (new_pos, new_vel) = Collisions.rebond_barre (pos_next, vel_next) (xmin, xmax, ymin, ymax, centre) in
+                let barre_vel = (centre -. etat.prev_barre_centre) /. dt in
+                let (new_pos, new_vel) = Collisions.rebond_barre (pos_next, vel_next) barre_vel in
                 let v_securite = 500.0 in (*ptite impulsion verticale garantie sur le contact avec la barre*)
                 let final_vel = (fst new_vel, max (snd new_vel) v_securite) in
-                let nouvel_etat = { etat with ball_pos = new_pos; ball_vel = final_vel } in
+                let nouvel_etat = { etat with ball_pos = new_pos; ball_vel = final_vel; prev_barre_centre = centre } in
                 Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
               else
                 (* Pas de collision *)
