@@ -9,6 +9,9 @@ module Brick = Libnewtonoid__Brick
 (** @canonical Libnewtonoid.Collisions *)
 module Collisions = Libnewtonoid__Collisions
 
+(** @canonical Libnewtonoid.Config *)
+module Config = Libnewtonoid__Config
+
 (** @canonical Libnewtonoid.Game *)
 module Game = Libnewtonoid__Game
 
@@ -20,3 +23,6 @@ module Iterator = Libnewtonoid__Iterator
 
 (** @canonical Libnewtonoid.Layout *)
 module Layout = Libnewtonoid__Layout
+
+(** @canonical Libnewtonoid.Vec2 *)
+module Vec2 = Libnewtonoid__Vec2

@@ -1,1 +1,1 @@
-lib/collisions.pp.ml: Brick Iterator List Ppx_inline_test_lib
+lib/collisions.pp.ml: Brick Config Inline_test_config List Ppx_inline_test_lib Random

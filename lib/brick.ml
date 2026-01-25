@@ -32,6 +32,8 @@ let rec is_empty = function
   | Node (_, nw, ne, sw, se) -> 
       is_empty nw && is_empty ne && is_empty sw && is_empty se
 
+
+(* Construction d'un quadtree a partir d'une liste de briques *)
 let rec build_tree box list_bricks =
   (* Condition d'arrêt : si peu de briques, on fait une feuille *)
   if List.length list_bricks <= 4 then
@@ -61,7 +63,7 @@ let rec build_tree box list_bricks =
           build_tree box_se se_bricks)
 
 
-(* TESTS UNITAIRES *)
+(* TESTS *)
 (* Brique de test *)
 let test_brick x y = {
   x; y;
@@ -79,14 +81,14 @@ let%test "is_empty Leaf []" = is_empty (Leaf [])
 let%test "is_empty Leaf non-empty" = not (is_empty (Leaf [test_brick 100. 100.]))
 
 (* Tests build_tree *)
-let%test "build_tree empty" = 
+let%test "build_tree vide" = 
   build_tree test_box [] = Empty
 
 let%test "build_tree single brick" = 
   let tree = build_tree test_box [test_brick 100. 100.] in
   not (is_empty tree)
 
-let%test "build_tree multiple bricks" =
+let%test "build_tree avec plusieurs briques" =
   let bricks = [
     test_brick 100. 100.;
     test_brick 200. 100.;
@@ -95,7 +97,7 @@ let%test "build_tree multiple bricks" =
   let tree = build_tree test_box bricks in
   not (is_empty tree)
 
-let%test "build_tree creates nodes for many bricks" =
+let%test "build_tree crée des noeuds pour plusieurs briques" =
   let bricks = List.init 10 (fun i -> test_brick (float_of_int (i * 75)) 100.) in
   let tree = build_tree test_box bricks in
   match tree with
@@ -103,32 +105,32 @@ let%test "build_tree creates nodes for many bricks" =
   | _ -> false
 
 (* Tests in_box *)
-let%test "in_box inside" =
+let%test "in_box dedans" =
   let b = test_brick 100. 100. in
   let box = { xmin = 0.0; xmax = 400.0; ymin = 0.0; ymax = 300.0 } in
   in_box b box
 
-let%test "in_box outside" =
+let%test "in_box dehors" =
   let b = test_brick 500. 500. in
   let box = { xmin = 0.0; xmax = 400.0; ymin = 0.0; ymax = 300.0 } in
   not (in_box b box)
 
-let%test "in_box edge overlap" =
+let%test "in_box bordure" =
   let b = test_brick 395. 100. in
   let box = { xmin = 0.0; xmax = 400.0; ymin = 0.0; ymax = 300.0 } in
   in_box b box
 
 (* Tests remove_brick *)
-let%test "remove_brick from Empty" =
+let%test "remove_brick depuis vide" =
   let b = test_brick 100. 100. in
   remove_brick b Empty = Empty
 
-let%test "remove_brick last brick" =
+let%test "remove_brick dernière brique" =
   let b = test_brick 100. 100. in
   let tree = Leaf [b] in
   is_empty (remove_brick b tree)
 
-let%test "remove_brick preserves others" =
+let%test "remove_brick garde bien les autres" =
   let b1 = test_brick 100. 100. in
   let b2 = test_brick 200. 100. in
   let tree = Leaf [b1; b2] in

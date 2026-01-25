@@ -41,11 +41,11 @@ let%test "creer centre" =
   let b = creer 400. (10., 790.) in
   b.centre = 400.
 
-let%test "creer clamp left" =
+let%test "creer gauche" =
   let b = creer 0. (10., 790.) in
   b.xmin >= 10.
 
-let%test "creer clamp right" =
+let%test "creer droite" =
   let b = creer 800. (10., 790.) in
   b.xmax <= 790.
 
@@ -53,7 +53,7 @@ let%test "creer dimensions" =
   let b = creer 400. (10., 790.) in
   Float.abs ((b.xmax -. b.xmin) -. largeur) < 0.001
 
-let%test "creer y position" =
+let%test "creer position y" =
   let b = creer 400. (10., 790.) in
   let mid_y = (b.ymin +. b.ymax) /. 2.0 in
   Float.abs (mid_y -. y_fixe) < 0.001

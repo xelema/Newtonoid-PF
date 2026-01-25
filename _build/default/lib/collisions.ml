@@ -1,9 +1,10 @@
-open Iterator
 
-(*Contour de la fenêtre*)
 
-let x_min, x_max = 10.0, 790.0
-let y_min, y_max = 10.0, 590.0
+(* Contour de la fenetre *)
+let x_min = Config.default_bounds.x_min
+let x_max = Config.default_bounds.x_max
+let y_min = Config.default_bounds.y_min
+let y_max = Config.default_bounds.y_max
 
 let contact_boite ((x,y), (vx, vy)) =
   (x < x_min && vx < 0.0)|| (x > x_max && vx > 0.0)||
@@ -76,27 +77,116 @@ let rebond_brick ((cx, cy), (vx, vy)) (brick : Brick.brick) =
       (* Collision verticale *)
       (vx, -.vy)
   in
-  ((cx, cy), (nv_vx, nv_vy))
 
-(*rebond de la barre différent pour l'angle x de rebond*)
-let rebond_barre ((x, y), (vx, vy)) (xmin, xmax, ymin, ymax, centre) =
-  let largeur = xmax -. xmin in
-  let diff = x -. centre in 
+  (* perturbation aleatoire pour eviter les trajectoires monotones *)
+  let perturbation = Config.default_physics.perturbation in
+  let rand_factor = (Random.float (2.0 *. perturbation)) -. perturbation in
+  let speed = sqrt (nv_vx *. nv_vx +. nv_vy *. nv_vy) in
+  let nv_vx_final = nv_vx +. (speed *. rand_factor) in
+  ((cx, cy), (nv_vx_final, nv_vy))
 
+(*rebond sur la barre *)
+let rebond_barre ((x, y), (vx, vy)) barre_vel =
+  (* Rebond simple: inverser la vitesse verticale *)
+  let nv_vy = abs_float vy in
 
-  let demi_largeur = largeur /. 2. in
-  (*pour pas de pb de collision*)
-  let diff = max (-.demi_largeur) (min demi_largeur diff) in
-  
-  let proportion = diff /. demi_largeur in 
-  
-  (*pas d'angle plat*)
-  let max_angle = 1.2 in 
-  let angle = proportion *. max_angle in
-  
-  let vitesse = sqrt (vx *. vx +. vy *. vy) in
-  
-  let nv_vx = vitesse *. sin angle in
-  let nv_vy = vitesse *. cos angle in
-  
-  ((x, y), (nv_vx, abs_float nv_vy))
+  (* Ajouter l'impulsion horizontale de la raquette *)
+  let coefficient_impulsion = Config.default_physics.impulse_coefficient in
+  let nv_vx = vx +. (barre_vel *. coefficient_impulsion) in
+
+  (* vitesse horizontale max pour garder un angle raisonnable *)
+  let vx_max = Config.default_physics.vx_max in
+  let nv_vx = max (-.vx_max) (min vx_max nv_vx) in
+
+  (* acceleration progressive a chaque rebond sur la barre *)
+  let acceleration_factor = Config.default_physics.acceleration_factor in
+  let nv_vx_accel = nv_vx *. acceleration_factor in
+  let nv_vy_accel = nv_vy *. acceleration_factor in
+
+  (* vitesse max pour garder le jeu jouable *)
+  let vitesse_max = Config.default_physics.max_speed in
+  let speed = sqrt (nv_vx_accel *. nv_vx_accel +. nv_vy_accel *. nv_vy_accel) in
+  let (final_vx, final_vy) = 
+    if speed > vitesse_max then
+      let ratio = vitesse_max /. speed in
+      (nv_vx_accel *. ratio, nv_vy_accel *. ratio)
+    else
+      (nv_vx_accel, nv_vy_accel)
+  in
+  ((x, y), (final_vx, final_vy))
+
+(* TESTS UNITAIRES *)
+(* Tests contact_boite *)
+let%test "contact_boite inside no contact" =
+  not (contact_boite ((400., 300.), (100., 100.)))
+
+let%test "contact_boite left wall going left" =
+  contact_boite ((5., 300.), (-100., 0.))
+
+let%test "contact_boite left wall going right" =
+  not (contact_boite ((5., 300.), (100., 0.)))
+
+let%test "contact_boite right wall going right" =
+  contact_boite ((795., 300.), (100., 0.))
+
+let%test "contact_boite top wall going up" =
+  contact_boite ((400., 595.), (0., 100.))
+
+(* Tests rebond_boite *)
+let%test "rebond_boite left wall" =
+  let ((nx, _), (nvx, _)) = rebond_boite ((5., 300.), (-100., 50.)) in
+  nx >= x_min && nvx > 0.
+
+let%test "rebond_boite right wall" =
+  let ((nx, _), (nvx, _)) = rebond_boite ((795., 300.), (100., 50.)) in
+  nx <= x_max && nvx < 0.
+
+let%test "rebond_boite top wall" =
+  let ((_, ny), (_, nvy)) = rebond_boite ((400., 595.), (50., 100.)) in
+  ny <= y_max && nvy < 0.
+
+let%test "rebond_boite no change inside" =
+  let ((x, y), (vx, vy)) = rebond_boite ((400., 300.), (100., 100.)) in
+  x = 400. && y = 300. && vx = 100. && vy = 100.
+
+(* Tests contact *)
+let%test "contact inside rectangle" =
+  contact ((50., 50.), (0., 0.)) 10. (40., 60., 40., 60.)
+
+let%test "contact outside rectangle" =
+  not (contact ((100., 100.), (0., 0.)) 10. (40., 60., 40., 60.))
+
+let%test "contact edge touch" =
+  contact ((35., 50.), (0., 0.)) 10. (40., 60., 40., 60.)
+
+(* Tests circle_aabb_contact *)
+let%test "circle_aabb inside" =
+  let box = { Brick.xmin = 40.; xmax = 60.; ymin = 40.; ymax = 60. } in
+  circle_aabb_contact (50., 50.) 5. box
+
+let%test "circle_aabb outside" =
+  let box = { Brick.xmin = 40.; xmax = 60.; ymin = 40.; ymax = 60. } in
+  not (circle_aabb_contact (100., 100.) 5. box)
+
+let%test "circle_aabb edge" =
+  let box = { Brick.xmin = 40.; xmax = 60.; ymin = 40.; ymax = 60. } in
+  circle_aabb_contact (35., 50.) 6. box
+
+let%test "circle_aabb corner" =
+  let box = { Brick.xmin = 40.; xmax = 60.; ymin = 40.; ymax = 60. } in
+  circle_aabb_contact (35., 35.) 8. box
+
+(* Tests rebond_barre *)
+let%test "rebond_barre inverts vy" =
+  let ((_, _), (_, nvy)) = rebond_barre ((400., 50.), (100., -200.)) 0. in
+  nvy > 0.
+
+let%test "rebond_barre adds impulse" =
+  let ((_, _), (nvx1, _)) = rebond_barre ((400., 50.), (100., -200.)) 0. in
+  let ((_, _), (nvx2, _)) = rebond_barre ((400., 50.), (100., -200.)) 500. in
+  nvx2 > nvx1
+
+let%test "rebond_barre clamps max speed" =
+  let ((_, _), (vx, vy)) = rebond_barre ((400., 50.), (1000., -1000.)) 1000. in
+  let speed = sqrt (vx *. vx +. vy *. vy) in
+  speed <= 1200.0 +. 0.001

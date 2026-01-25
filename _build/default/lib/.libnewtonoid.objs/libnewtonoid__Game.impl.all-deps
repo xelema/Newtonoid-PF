@@ -1,4 +1,7 @@
+libnewtonoid__Barreau
 libnewtonoid__Brick
 libnewtonoid__Collisions
+libnewtonoid__Config
 libnewtonoid__Iterator
 libnewtonoid__Layout
+libnewtonoid__Vec2
