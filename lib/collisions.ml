@@ -76,9 +76,15 @@ let rebond_brick ((cx, cy), (vx, vy)) (brick : Brick.brick) =
       (* Collision verticale *)
       (vx, -.vy)
   in
-  ((cx, cy), (nv_vx, nv_vy))
 
-(*rebond sur la barre avec impulsion du mouvement*)
+  (* perturbation aléatoire pour ne pas avoir de trajectoires monotones *)
+  let perturbation = 0.1 in
+  let rand_factor = (Random.float (2.0 *. perturbation)) -. perturbation in
+  let speed = sqrt (nv_vx *. nv_vx +. nv_vy *. nv_vy) in
+  let nv_vx_final = nv_vx +. (speed *. rand_factor) in
+  ((cx, cy), (nv_vx_final, nv_vy))
+
+(*rebond sur la barre *)
 let rebond_barre ((x, y), (vx, vy)) barre_vel =
   (* Rebond simple: inverser la vitesse verticale *)
   let nv_vy = abs_float vy in
@@ -87,4 +93,23 @@ let rebond_barre ((x, y), (vx, vy)) barre_vel =
   let coefficient_impulsion = 0.5 in
   let nv_vx = vx +. (barre_vel *. coefficient_impulsion) in
 
-  ((x, y), (nv_vx, nv_vy))
+  (* vitesse horizontale max pour garder un angle raisonnable *)
+  let vx_max = 700.0 in
+  let nv_vx = max (-.vx_max) (min vx_max nv_vx) in
+
+  (* accélération progressive de 5% à chaque rebond sur la barre *)
+  let acceleration_factor = 1.05 in
+  let nv_vx_accel = nv_vx *. acceleration_factor in
+  let nv_vy_accel = nv_vy *. acceleration_factor in
+
+  (* vitesse max pour garder le jeu jouable *)
+  let vitesse_max = 1200.0 in
+  let speed = sqrt (nv_vx_accel *. nv_vx_accel +. nv_vy_accel *. nv_vy_accel) in
+  let (final_vx, final_vy) = 
+    if speed > vitesse_max then
+      let ratio = vitesse_max /. speed in
+      (nv_vx_accel *. ratio, nv_vy_accel *. ratio)
+    else
+      (nv_vx_accel, nv_vy_accel)
+  in
+  ((x, y), (final_vx, final_vy))

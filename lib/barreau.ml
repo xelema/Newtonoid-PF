@@ -4,7 +4,7 @@ open Collisions
 (*xmin xmax ymin ymax centre*)
 type barre = float * float * float * float * float
 
-let largeur = 80.0
+let largeur = 120.0
 let hauteur = 15.0
 let y_fixe = 40.0
 

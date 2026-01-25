@@ -18,8 +18,12 @@ type etat = {
 
 let ball_radius = 10.0
 
-let g = 9.81 *. 50.(*consrtante gravité*)
+let g = 9.81 *. 50. (*constante gravité*)
 let rayon_balle = 10.
+
+(* Position et vitesse initiales de la balle *)
+let init_ball_pos = (400., 300.)
+let init_ball_vel = (0., 600.)
 
 
 (* Calcul de la prochaine étape de trajectoire *)
@@ -53,12 +57,12 @@ let rec run dt etat flux_barre =
            None (*Game over*)
          else
            (* On perd une vie et on replace la balle au centre *)
-           let etat_reset = { etat with
-             vies = etat.vies - 1;
-             ball_pos = (400., 100.);
-             ball_vel = (0., 500.);
-             prev_barre_centre = centre
-           } in
+            let etat_reset = { etat with
+              vies = etat.vies - 1;
+              ball_pos = init_ball_pos;
+              ball_vel = init_ball_vel;
+              prev_barre_centre = centre
+            } in
            Some ((etat_reset, barre), run dt etat_reset reste_barre)
        else
           let etat_next = { etat with ball_pos = pos_next; ball_vel = vel_next; prev_barre_centre = centre } in
@@ -78,8 +82,8 @@ let rec run dt etat flux_barre =
                 (* Passer au niveau suivant *)
                 let next_niveau = etat.niveau + 1 in
                 let nouvel_etat = {
-                  ball_pos = (400., 100.);
-                  ball_vel = (0., 500.);
+                  ball_pos = init_ball_pos;
+                  ball_vel = init_ball_vel;
                   bricks = Layout.get_level next_niveau;
                   score = new_score;
                   vies = etat.vies;

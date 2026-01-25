@@ -96,19 +96,20 @@ let draw flux_etat =
   loop flux_etat
 
 let () = 
+  Random.self_init ();
   Graphics.open_graph " 800x600";
   Graphics.auto_synchronize false;
 
   let rec main_loop () =
     let dt = Init.dt in
     let init : Game.etat = {
-      ball_pos = (400., 100.);
-      ball_vel = (0., 500.);
+      ball_pos = Game.init_ball_pos;
+      ball_vel = Game.init_ball_vel;
       bricks = Layout.get_level 0;
       score = 0;
       vies = 3;
       niveau = 0;
-      prev_barre_centre = 400.;
+      prev_barre_centre = fst Game.init_ball_pos;
     } in
     let limites_cadre = (Box.infx, Box.supx) in
     let flux_barre = Barreau.flux_barre (Input.mouse ()) limites_cadre in
