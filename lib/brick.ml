@@ -59,3 +59,78 @@ let rec build_tree box list_bricks =
           build_tree box_ne ne_bricks,
           build_tree box_sw sw_bricks,
           build_tree box_se se_bricks)
+
+
+(* TESTS UNITAIRES *)
+(* Brique de test *)
+let test_brick x y = {
+  x; y;
+  width = 70.0;
+  height = 20.0;
+  value = 10;
+  color = Graphics.red;
+}
+
+let test_box = { xmin = 0.0; xmax = 800.0; ymin = 0.0; ymax = 600.0 }
+
+(* Tests is_empty *)
+let%test "is_empty Empty" = is_empty Empty
+let%test "is_empty Leaf []" = is_empty (Leaf [])
+let%test "is_empty Leaf non-empty" = not (is_empty (Leaf [test_brick 100. 100.]))
+
+(* Tests build_tree *)
+let%test "build_tree empty" = 
+  build_tree test_box [] = Empty
+
+let%test "build_tree single brick" = 
+  let tree = build_tree test_box [test_brick 100. 100.] in
+  not (is_empty tree)
+
+let%test "build_tree multiple bricks" =
+  let bricks = [
+    test_brick 100. 100.;
+    test_brick 200. 100.;
+    test_brick 300. 100.;
+  ] in
+  let tree = build_tree test_box bricks in
+  not (is_empty tree)
+
+let%test "build_tree creates nodes for many bricks" =
+  let bricks = List.init 10 (fun i -> test_brick (float_of_int (i * 75)) 100.) in
+  let tree = build_tree test_box bricks in
+  match tree with
+  | Node _ -> true
+  | _ -> false
+
+(* Tests in_box *)
+let%test "in_box inside" =
+  let b = test_brick 100. 100. in
+  let box = { xmin = 0.0; xmax = 400.0; ymin = 0.0; ymax = 300.0 } in
+  in_box b box
+
+let%test "in_box outside" =
+  let b = test_brick 500. 500. in
+  let box = { xmin = 0.0; xmax = 400.0; ymin = 0.0; ymax = 300.0 } in
+  not (in_box b box)
+
+let%test "in_box edge overlap" =
+  let b = test_brick 395. 100. in
+  let box = { xmin = 0.0; xmax = 400.0; ymin = 0.0; ymax = 300.0 } in
+  in_box b box
+
+(* Tests remove_brick *)
+let%test "remove_brick from Empty" =
+  let b = test_brick 100. 100. in
+  remove_brick b Empty = Empty
+
+let%test "remove_brick last brick" =
+  let b = test_brick 100. 100. in
+  let tree = Leaf [b] in
+  is_empty (remove_brick b tree)
+
+let%test "remove_brick preserves others" =
+  let b1 = test_brick 100. 100. in
+  let b2 = test_brick 200. 100. in
+  let tree = Leaf [b1; b2] in
+  let after = remove_brick b1 tree in
+  not (is_empty after)

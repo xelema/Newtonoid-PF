@@ -1,11 +1,7 @@
 open Iterator
 open Collisions
-(*Meme definition qu'au TP7*)
 
-(*x et y*)
-type vect = (float * float)
-
-(* État du jeu incluant les briques *)
+(* Etat du jeu *)
 type etat = {
   ball_pos : float * float;
   ball_vel : float * float;
@@ -16,14 +12,14 @@ type etat = {
   prev_barre_centre : float;
 }
 
-let ball_radius = 10.0
+(* Constantes du jeu chargées de la config *)
+let ball_radius = Config.default_physics.ball_radius
+let g = Config.default_physics.gravity
+let rayon_balle = Config.default_physics.ball_radius
 
-let g = 9.81 *. 50. (*constante gravité*)
-let rayon_balle = 10.
-
-(* Position et vitesse initiales de la balle *)
-let init_ball_pos = (400., 300.)
-let init_ball_vel = (0., 600.)
+(* Position et vitesse initiales de la balle chargées de la config *)
+let init_ball_pos = Vec2.to_tuple Config.default_ball.initial_pos
+let init_ball_vel = Vec2.to_tuple Config.default_ball.initial_vel
 
 
 (* Calcul de la prochaine étape de trajectoire *)
@@ -46,13 +42,17 @@ let rec run dt etat flux_barre =
     match Flux.uncons flux_barre with
     | None -> None
     | Some (barre, reste_barre) ->
-       let (xmin, xmax, ymin, ymax, centre) = barre in
+       let xmin = barre.Barreau.xmin in
+       let xmax = barre.Barreau.xmax in
+       let ymin = barre.Barreau.ymin in
+       let ymax = barre.Barreau.ymax in
+       let centre = barre.Barreau.centre in
        (* Calculer la prochaine position de la balle *)
        let (pos_next, vel_next) = calcul_step dt (etat.ball_pos, etat.ball_vel) in
        let (_, y_next) = pos_next in
 
-       (*Si la balle tombe*)
-       if y_next < 10.0 then
+       (*Si la balle tombe sous la limite basse*)
+       if y_next < Config.default_bounds.y_min then
          if etat.vies <= 0 then
            None (*Game over*)
          else
@@ -113,13 +113,55 @@ let rec run dt etat flux_barre =
                 (* Collision avec la barre *)
                 let barre_vel = (centre -. etat.prev_barre_centre) /. dt in
                 let (new_pos, new_vel) = Collisions.rebond_barre (pos_next, vel_next) barre_vel in
-                let v_securite = 500.0 in (*ptite impulsion verticale garantie sur le contact avec la barre*)
+                let v_securite = Config.default_physics.v_securite in
                 let final_vel = (fst new_vel, max (snd new_vel) v_securite) in
                 let nouvel_etat = { etat with ball_pos = new_pos; ball_vel = final_vel; prev_barre_centre = centre } in
                 Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
               else
-                (* Pas de collision *)
+              (* Pas de collision *)
                 Some ((etat_next, barre), run dt etat_next reste_barre)
   ))
+
+(* TESTS UNITAIRES *)
+(* Tests calcul_step *)
+let%test "calcul_step no velocity" =
+  let dt = 0.1 in
+  let ((px, py), (vx, vy)) = calcul_step dt ((100., 100.), (0., 0.)) in
+  (* Position ne change que par la gravite *)
+  Float.abs (px -. 100.) < 0.01 && 
+  vx = 0. &&
+  vy < 0.  (* Gravite tire vers le bas *)
+
+let%test "calcul_step horizontal movement" =
+  let dt = 0.1 in
+  let ((px, _), (vx, _)) = calcul_step dt ((100., 100.), (100., 0.)) in
+  px > 100. && Float.abs (vx -. 100.) < 0.01
+
+let%test "calcul_step vertical with gravity" =
+  let dt = 0.1 in
+  let ((_, py1), (_, vy1)) = calcul_step dt ((100., 100.), (0., 100.)) in
+  let ((_, py2), (_, vy2)) = calcul_step dt ((100., 100.), (0., 0.)) in
+  (* Avec vitesse initiale vers le haut, on monte plus haut *)
+  py1 > py2 && vy1 > vy2
+
+let%test "calcul_step preserves x velocity" =
+  let dt = 0.1 in
+  let ((_, _), (vx, _)) = calcul_step dt ((100., 100.), (200., 300.)) in
+  Float.abs (vx -. 200.) < 0.01  (* Pas d'acceleration horizontale *)
+
+let%test "calcul_step gravity decreases vy" =
+  let dt = 0.1 in
+  let initial_vy = 500. in
+  let ((_, _), (_, vy)) = calcul_step dt ((100., 100.), (0., initial_vy)) in
+  vy < initial_vy  (* La gravite reduit la vitesse vers le haut *)
+
+(* Tests init values *)
+let%test "init_ball_pos in bounds" =
+  let (x, y) = init_ball_pos in
+  x > 0. && x < 800. && y > 0. && y < 600.
+
+let%test "init_ball_vel upward" =
+  let (_, vy) = init_ball_vel in
+  vy > 0.  (* La balle demarre vers le haut *)
 
 
