@@ -34,8 +34,8 @@ let rec draw_bricks = function
   | Brick.Node (_, nw, ne, sw, se) ->
       draw_bricks nw; draw_bricks ne; draw_bricks sw; draw_bricks se
 
-(* Dessiner l'etat complet du jeu *)
-let draw_state (etat, barre) =
+(* Dessiner l'etat complet du jeu - reçoit (ball_pos, etat, barre) *)
+let draw_state (ball_pos, etat, barre) =
   draw_bricks etat.bricks;
 
   (* Dessiner la raquette *)
@@ -47,7 +47,7 @@ let draw_state (etat, barre) =
     (int_of_float (barre.Barreau.ymax -. barre.Barreau.ymin));
 
   (* Dessiner la balle *)
-  let (x, y) = etat.ball_pos in
+  let (x, y) = ball_pos in
   let radius = int_of_float config.physics.ball_radius in
   Graphics.set_color Graphics.black;
   Graphics.fill_circle (int_of_float x) (int_of_float y) radius;
@@ -66,9 +66,9 @@ let rec wait_for_restart_key () =
   | _ -> wait_for_restart_key ()
 
 (* Boucle de rendu principale *)
-let draw flux_etat =
-  let rec loop flux_etat =
-    match Flux.(uncons flux_etat) with
+let draw flux_jeu =
+  let rec loop flux =
+    match Flux.(uncons flux) with
     | None -> 
         Graphics.clear_graph ();
         Graphics.set_color Graphics.red;
@@ -78,14 +78,14 @@ let draw flux_etat =
         Graphics.draw_string "R = Recommencer | Q = Quitter";
         Graphics.synchronize ();
         wait_for_restart_key ()
-    | Some ((etat, barre), flux_etat') ->
+    | Some ((ball_pos, etat, barre), flux') ->
         Graphics.clear_graph ();
-        draw_state (etat, barre);
+        draw_state (ball_pos, etat, barre);
         Graphics.synchronize ();
         Unix.sleepf config.dt;
-        loop flux_etat'
+        loop flux'
   in
-  loop flux_etat
+  loop flux_jeu
 
 (* Point d'entree principal *)
 let () = 
@@ -94,15 +94,12 @@ let () =
   Graphics.auto_synchronize false;
 
   let rec main_loop () =
-    (* Creer l'etat initial du jeu *)
+    (* Creer l'etat initial du jeu - sans ball_pos/ball_vel (c'est dans le flux) *)
     let init : Game.etat = {
-      ball_pos = Game.init_ball_pos;
-      ball_vel = Game.init_ball_vel;
       bricks = Layout.get_level 0;
       score = 0;
       vies = config.initial_lives;
       niveau = 0;
-      prev_barre_centre = fst Game.init_ball_pos;
     } in
     (* Limites du cadre pour la raquette *)
     let limites_cadre = (config.bounds.x_min, config.bounds.x_max) in

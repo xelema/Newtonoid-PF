@@ -117,58 +117,58 @@ let rebond_barre ((x, y), (vx, vy)) barre_vel =
 
 (* TESTS UNITAIRES *)
 (* Tests contact_boite *)
-let%test "contact_boite inside no contact" =
+let%test "contact_boite pas de contact interne" =
   not (contact_boite ((400., 300.), (100., 100.)))
 
-let%test "contact_boite left wall going left" =
+let%test "contact_boite mur gauche" =
   contact_boite ((5., 300.), (-100., 0.))
 
-let%test "contact_boite left wall going right" =
+let%test "contact_boite mur gauche 2" =
   not (contact_boite ((5., 300.), (100., 0.)))
 
-let%test "contact_boite right wall going right" =
+let%test "contact_boite mur droit" =
   contact_boite ((795., 300.), (100., 0.))
 
-let%test "contact_boite top wall going up" =
+let%test "contact_boite mur haut" =
   contact_boite ((400., 595.), (0., 100.))
 
 (* Tests rebond_boite *)
-let%test "rebond_boite left wall" =
+let%test "rebond_boite mur gauche" =
   let ((nx, _), (nvx, _)) = rebond_boite ((5., 300.), (-100., 50.)) in
   nx >= x_min && nvx > 0.
 
-let%test "rebond_boite right wall" =
+let%test "rebond_boite mur droit" =
   let ((nx, _), (nvx, _)) = rebond_boite ((795., 300.), (100., 50.)) in
   nx <= x_max && nvx < 0.
 
-let%test "rebond_boite top wall" =
+let%test "rebond_boite mur haut" =
   let ((_, ny), (_, nvy)) = rebond_boite ((400., 595.), (50., 100.)) in
   ny <= y_max && nvy < 0.
 
-let%test "rebond_boite no change inside" =
+let%test "rebond_boite pas de changement à l'intérieur" =
   let ((x, y), (vx, vy)) = rebond_boite ((400., 300.), (100., 100.)) in
   x = 400. && y = 300. && vx = 100. && vy = 100.
 
 (* Tests contact *)
-let%test "contact inside rectangle" =
+let%test "contact dedans rectangle" =
   contact ((50., 50.), (0., 0.)) 10. (40., 60., 40., 60.)
 
-let%test "contact outside rectangle" =
+let%test "contact dehors rectangle" =
   not (contact ((100., 100.), (0., 0.)) 10. (40., 60., 40., 60.))
 
-let%test "contact edge touch" =
+let%test "contact bordure rectangle" =
   contact ((35., 50.), (0., 0.)) 10. (40., 60., 40., 60.)
 
 (* Tests circle_aabb_contact *)
-let%test "circle_aabb inside" =
+let%test "circle_aabb dedans" =
   let box = { Brick.xmin = 40.; xmax = 60.; ymin = 40.; ymax = 60. } in
   circle_aabb_contact (50., 50.) 5. box
 
-let%test "circle_aabb outside" =
+let%test "circle_aabb dehors" =
   let box = { Brick.xmin = 40.; xmax = 60.; ymin = 40.; ymax = 60. } in
   not (circle_aabb_contact (100., 100.) 5. box)
 
-let%test "circle_aabb edge" =
+let%test "circle_aabb bordure" =
   let box = { Brick.xmin = 40.; xmax = 60.; ymin = 40.; ymax = 60. } in
   circle_aabb_contact (35., 50.) 6. box
 
@@ -177,16 +177,16 @@ let%test "circle_aabb corner" =
   circle_aabb_contact (35., 35.) 8. box
 
 (* Tests rebond_barre *)
-let%test "rebond_barre inverts vy" =
+let%test "rebond_barre inverse vy" =
   let ((_, _), (_, nvy)) = rebond_barre ((400., 50.), (100., -200.)) 0. in
   nvy > 0.
 
-let%test "rebond_barre adds impulse" =
+let%test "rebond_barre ajoute impulsion" =
   let ((_, _), (nvx1, _)) = rebond_barre ((400., 50.), (100., -200.)) 0. in
   let ((_, _), (nvx2, _)) = rebond_barre ((400., 50.), (100., -200.)) 500. in
   nvx2 > nvx1
 
-let%test "rebond_barre clamps max speed" =
+let%test "rebond_barre ne dépasse pas la vitesse max" =
   let ((_, _), (vx, vy)) = rebond_barre ((400., 50.), (1000., -1000.)) 1000. in
   let speed = sqrt (vx *. vx +. vy *. vy) in
   speed <= 1200.0 +. 0.001

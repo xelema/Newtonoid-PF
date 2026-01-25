@@ -1,14 +1,11 @@
 (* Logique principale du jeu *)
 
-(* Etat complet du jeu *)
+(* Etat du jeu - ne contient PAS la position/vitesse de la balle (c'est dans le flux) *)
 type etat = {
-  ball_pos : float * float;
-  ball_vel : float * float;
-  bricks   : Brick.bricks;
-  score    : int;
-  vies     : int;
-  niveau   : int;
-  prev_barre_centre : float;
+  bricks : Brick.bricks;
+  score  : int;
+  vies   : int;
+  niveau : int;
 }
 
 (* Constantes du jeu *)
@@ -21,8 +18,8 @@ val init_ball_vel : float * float
 (* Calcul d'une etape de trajectoire avec gravite *)
 val calcul_step : float -> (float * float) * (float * float) -> (float * float) * (float * float)
 
-(* Detection de collision avec une brique *)
-val has_brick_collision : etat -> bool
+(* Flux de trajectoire de la balle (positions/vitesses successives sous gravite) *)
+val flux_trajectoire : float -> float * float -> float * float -> ((float * float) * (float * float)) Iterator.flux
 
-(* Boucle principale du jeu - flux d'etats *)
-val run : float -> etat -> Barreau.t Iterator.flux -> (etat * Barreau.t) Iterator.flux
+(* Boucle principale du jeu - retourne un flux de (ball_pos, etat, barre) *)
+val run : float -> etat -> Barreau.t Iterator.flux -> ((float * float) * etat * Barreau.t) Iterator.flux

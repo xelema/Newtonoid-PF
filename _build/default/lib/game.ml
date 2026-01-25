@@ -1,15 +1,12 @@
 open Iterator
-open Collisions
 
-(* Etat du jeu *)
+(* ==================== ETAT DU JEU ==================== *)
+(* L'état ne contient PAS la position/vitesse de la balle (c'est dans le flux de trajectoire) *)
 type etat = {
-  ball_pos : float * float;
-  ball_vel : float * float;
-  bricks   : Brick.bricks;
-  score    : int;
-  vies     : int;
-  niveau   : int;
-  prev_barre_centre : float;
+  bricks : Brick.bricks;
+  score  : int;
+  vies   : int;
+  niveau : int;
 }
 
 (* Constantes du jeu chargées de la config *)
@@ -21,11 +18,11 @@ let rayon_balle = Config.default_physics.ball_radius
 let init_ball_pos = Vec2.to_tuple Config.default_ball.initial_pos
 let init_ball_vel = Vec2.to_tuple Config.default_ball.initial_vel
 
-
-(* Calcul de la prochaine étape de trajectoire *)
-let calcul_step dt (pos, vit) = 
+(* ==================== FLUX DE TRAJECTOIRE ==================== *)
+(* Calcul d'une étape de trajectoire sous gravité *)
+let calcul_step dt (pos, vel) = 
   let (px, py) = pos in
-  let (vx, vy) = vit in
+  let (vx, vy) = vel in
   let (ax, ay) = (0., -.g) in
   let px_next = px +. vx *. dt +. 0.5 *. ax *. (dt *. dt) in
   let py_next = py +. vy *. dt +. 0.5 *. ay *. (dt *. dt) in
@@ -33,104 +30,101 @@ let calcul_step dt (pos, vit) =
   let vy_next = vy +. ay *. dt in
   ((px_next, py_next), (vx_next, vy_next))
 
-(* Détection de collision avec une brique *)
-let has_brick_collision etat =
-  Option.is_some (Collisions.find_colliding_brick (etat.ball_pos, etat.ball_vel) etat.bricks ball_radius)
+(* Flux de trajectoire sous gravité - génère (pos, vel) à chaque instant *)
+let flux_trajectoire dt pos_init vel_init =
+  Flux.unfold
+    (fun (pos, vel) ->
+       let (new_pos, new_vel) = calcul_step dt (pos, vel) in
+       Some ((pos, vel), (new_pos, new_vel)))
+    (pos_init, vel_init)
 
-let rec run dt etat flux_barre =
+(* ==================== FLUX PRINCIPAL DU JEU ==================== *)
+
+(*
+   Boucle principale récursive.
+   On traite frame par frame en appliquant les collisions.
+   Le flux de barre est consommé en synchronisation.
+   
+   flux_traj : flux de (pos, vel) - la trajectoire pure sous gravité
+   flux_barre : flux de Barreau.t
+   etat : état courant du jeu
+   prev_centre : position précédente du centre de la barre
+*)
+let rec flux_jeu dt flux_traj flux_barre etat prev_centre =
   Tick (lazy (
-    match Flux.uncons flux_barre with
-    | None -> None
-    | Some (barre, reste_barre) ->
-       let xmin = barre.Barreau.xmin in
-       let xmax = barre.Barreau.xmax in
-       let ymin = barre.Barreau.ymin in
-       let ymax = barre.Barreau.ymax in
-       let centre = barre.Barreau.centre in
-       (* Calculer la prochaine position de la balle *)
-       let (pos_next, vel_next) = calcul_step dt (etat.ball_pos, etat.ball_vel) in
-       let (_, y_next) = pos_next in
-
-       (*Si la balle tombe sous la limite basse*)
-       if y_next < Config.default_bounds.y_min then
-         if etat.vies <= 0 then
-           None (*Game over*)
-         else
-           (* On perd une vie et on replace la balle au centre *)
-            let etat_reset = { etat with
-              vies = etat.vies - 1;
-              ball_pos = init_ball_pos;
-              ball_vel = init_ball_vel;
-              prev_barre_centre = centre
-            } in
-           Some ((etat_reset, barre), run dt etat_reset reste_barre)
-       else
-          let etat_next = { etat with ball_pos = pos_next; ball_vel = vel_next; prev_barre_centre = centre } in
-       
-          (* Vérifier d'abord les collisions avec les briques *)
-          let collision_brick = Collisions.find_colliding_brick (pos_next, vel_next) etat.bricks ball_radius in
-       
-          match collision_brick with
-          | Some brick ->
-              (* Collision avec une brique *)
-              let (new_pos, new_vel) = Collisions.rebond_brick (pos_next, vel_next) brick in
-              let new_bricks = Brick.remove_brick brick etat.bricks in
-              let new_score = etat.score + brick.value in
-              
-              (* Verifier si toutes les briques sont cassees (victoire niveau) *)
-              if Brick.is_empty new_bricks then
-                (* Passer au niveau suivant *)
-                let next_niveau = etat.niveau + 1 in
-                let nouvel_etat = {
-                  ball_pos = init_ball_pos;
-                  ball_vel = init_ball_vel;
-                  bricks = Layout.get_level next_niveau;
-                  score = new_score;
-                  vies = etat.vies;
-                  niveau = next_niveau;
-                  prev_barre_centre = centre;
-                } in
-                Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
-              else
-                let nouvel_etat = {
-                  ball_pos = new_pos;
-                  ball_vel = new_vel;
-                  bricks = new_bricks;
-                  score = new_score;
-                  vies = etat.vies;
-                  niveau = etat.niveau;
-                  prev_barre_centre = centre;
-                } in
-                Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
-          | None ->
-              (* Pas de collision avec les briques, vérifier boite et barre *)
-              if Collisions.contact_boite (pos_next, vel_next) then
-                (* Collision avec les murs *)
-                let (new_pos, new_vel) = Collisions.rebond_boite (pos_next, vel_next) in
-                let nouvel_etat = { etat with ball_pos = new_pos; ball_vel = new_vel; prev_barre_centre = centre } in
-                Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
-              else if Collisions.contact (pos_next, vel_next) rayon_balle (xmin, xmax, ymin, ymax) then
-                (* Collision avec la barre *)
-                let barre_vel = (centre -. etat.prev_barre_centre) /. dt in
-                let (new_pos, new_vel) = Collisions.rebond_barre (pos_next, vel_next) barre_vel in
-                let v_securite = Config.default_physics.v_securite in
-                let final_vel = (fst new_vel, max (snd new_vel) v_securite) in
-                let nouvel_etat = { etat with ball_pos = new_pos; ball_vel = final_vel; prev_barre_centre = centre } in
-                Some ((nouvel_etat, barre), run dt nouvel_etat reste_barre)
-              else
-              (* Pas de collision *)
-                Some ((etat_next, barre), run dt etat_next reste_barre)
+    match Flux.uncons flux_traj, Flux.uncons flux_barre with
+    | None, _ | _, None -> None
+    | Some ((pos, vel), reste_traj), Some (barre, reste_barre) ->
+        (* Tester les conditions de collision dans l'ordre de priorité *)
+        
+        (* 1. Balle tombée ? *)
+        if snd pos < Config.default_bounds.y_min then
+          if etat.vies <= 1 then
+            None  (* Game over *)
+          else
+            (* Perd une vie, nouvelle trajectoire - émettre la frame puis continuer *)
+            let new_etat = { etat with vies = etat.vies - 1 } in
+            let new_flux_traj = flux_trajectoire dt init_ball_pos init_ball_vel in
+            Some ((pos, etat, barre), flux_jeu dt new_flux_traj reste_barre new_etat barre.Barreau.centre)
+        
+        (* 2. Collision brique ? *)
+        else if Option.is_some (Collisions.find_colliding_brick (pos, vel) etat.bricks ball_radius) then
+          let brick = Option.get (Collisions.find_colliding_brick (pos, vel) etat.bricks ball_radius) in
+          let (new_pos, new_vel) = Collisions.rebond_brick (pos, vel) brick in
+          let new_bricks = Brick.remove_brick brick etat.bricks in
+          let new_score = etat.score + brick.value in
+          
+          if Brick.is_empty new_bricks then
+            (* Niveau terminé - émettre la frame puis passer au niveau suivant *)
+            let next_niveau = etat.niveau + 1 in
+            let new_etat = { bricks = Layout.get_level next_niveau; score = new_score;
+                             vies = etat.vies; niveau = next_niveau } in
+            let new_flux_traj = flux_trajectoire dt init_ball_pos init_ball_vel in
+            Some ((pos, new_etat, barre), flux_jeu dt new_flux_traj reste_barre new_etat barre.Barreau.centre)
+          else
+            (* Collision brique - émettre la frame puis continuer avec rebond *)
+            let new_etat = { etat with bricks = new_bricks; score = new_score } in
+            let new_flux_traj = flux_trajectoire dt new_pos new_vel in
+            Some ((pos, new_etat, barre), flux_jeu dt new_flux_traj reste_barre new_etat barre.Barreau.centre)
+        
+        (* 3. Collision barre ? (seulement si la balle descend) *)
+        else if snd vel < 0. && Collisions.contact (pos, vel) rayon_balle 
+                  (barre.Barreau.xmin, barre.Barreau.xmax, barre.Barreau.ymin, barre.Barreau.ymax) then
+          let centre = barre.Barreau.centre in
+          let barre_vel = (centre -. prev_centre) /. dt in
+          let (new_pos, new_vel) = Collisions.rebond_barre (pos, vel) barre_vel in
+          let v_securite = Config.default_physics.v_securite in
+          let final_vel = (fst new_vel, max (snd new_vel) v_securite) in
+          let new_flux_traj = flux_trajectoire dt new_pos final_vel in
+          (* Émettre la frame courante, puis continuer avec le nouveau flux *)
+          Some ((pos, etat, barre), flux_jeu dt new_flux_traj reste_barre etat centre)
+        
+        (* 4. Collision mur ? *)
+        else if Collisions.contact_boite (pos, vel) then
+          let (new_pos, new_vel) = Collisions.rebond_boite (pos, vel) in
+          let new_flux_traj = flux_trajectoire dt new_pos new_vel in
+          (* Émettre la frame courante, puis continuer avec le nouveau flux *)
+          Some ((pos, etat, barre), flux_jeu dt new_flux_traj reste_barre etat barre.Barreau.centre)
+        
+        (* 5. Pas de collision - continuer la trajectoire *)
+        else
+          Some ((pos, etat, barre), flux_jeu dt reste_traj reste_barre etat barre.Barreau.centre)
   ))
 
-(* TESTS UNITAIRES *)
-(* Tests calcul_step *)
+(* Point d'entrée : crée le flux initial et lance la boucle *)
+let run dt etat_init flux_barre =
+  let flux_traj = flux_trajectoire dt init_ball_pos init_ball_vel in
+  let prev_centre = fst init_ball_pos in
+  flux_jeu dt flux_traj flux_barre etat_init prev_centre
+
+(* ==================== TESTS UNITAIRES ==================== *)
+
 let%test "calcul_step no velocity" =
   let dt = 0.1 in
-  let ((px, py), (vx, vy)) = calcul_step dt ((100., 100.), (0., 0.)) in
-  (* Position ne change que par la gravite *)
+  let ((px, _py), (vx, vy)) = calcul_step dt ((100., 100.), (0., 0.)) in
   Float.abs (px -. 100.) < 0.01 && 
   vx = 0. &&
-  vy < 0.  (* Gravite tire vers le bas *)
+  vy < 0.
 
 let%test "calcul_step horizontal movement" =
   let dt = 0.1 in
@@ -141,27 +135,31 @@ let%test "calcul_step vertical with gravity" =
   let dt = 0.1 in
   let ((_, py1), (_, vy1)) = calcul_step dt ((100., 100.), (0., 100.)) in
   let ((_, py2), (_, vy2)) = calcul_step dt ((100., 100.), (0., 0.)) in
-  (* Avec vitesse initiale vers le haut, on monte plus haut *)
   py1 > py2 && vy1 > vy2
 
 let%test "calcul_step preserves x velocity" =
   let dt = 0.1 in
   let ((_, _), (vx, _)) = calcul_step dt ((100., 100.), (200., 300.)) in
-  Float.abs (vx -. 200.) < 0.01  (* Pas d'acceleration horizontale *)
+  Float.abs (vx -. 200.) < 0.01
 
 let%test "calcul_step gravity decreases vy" =
   let dt = 0.1 in
   let initial_vy = 500. in
   let ((_, _), (_, vy)) = calcul_step dt ((100., 100.), (0., initial_vy)) in
-  vy < initial_vy  (* La gravite reduit la vitesse vers le haut *)
+  vy < initial_vy
 
-(* Tests init values *)
 let%test "init_ball_pos in bounds" =
   let (x, y) = init_ball_pos in
   x > 0. && x < 800. && y > 0. && y < 600.
 
 let%test "init_ball_vel upward" =
   let (_, vy) = init_ball_vel in
-  vy > 0.  (* La balle demarre vers le haut *)
+  vy > 0.
+
+let%test "flux_trajectoire generates values" =
+  let flux = flux_trajectoire 0.1 (100., 100.) (50., 50.) in
+  match Flux.uncons flux with
+  | None -> false
+  | Some (((px, py), _), _) -> px = 100. && py = 100.
 
 
