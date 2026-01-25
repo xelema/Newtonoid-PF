@@ -5,7 +5,6 @@ open Game
 (* Configuration du jeu *)
 let config = Config.default
 
-(* Calcul du format de la fenetre graphique *)
 let graphic_format =
   let bounds = config.Config.bounds in
   let width = int_of_float (bounds.x_max -. bounds.x_min +. 20.) in
@@ -27,14 +26,14 @@ let draw_brick (brick : Brick.brick) =
     (int_of_float brick.width)
     (int_of_float brick.height)
 
-(* Dessiner toutes les briques (parcours du quadtree) *)
+(* Dessiner toutes les briques (parcours de la structure du quadtree) *)
 let rec draw_bricks = function
   | Brick.Empty -> ()
   | Brick.Leaf l -> List.iter draw_brick l
   | Brick.Node (_, nw, ne, sw, se) ->
       draw_bricks nw; draw_bricks ne; draw_bricks sw; draw_bricks se
 
-(* Dessiner l'etat complet du jeu - reçoit (ball_pos, etat, barre) *)
+(* Dessiner l'etat complet du jeu *)
 let draw_state (ball_pos, etat, barre) =
   draw_bricks etat.bricks;
 
@@ -65,7 +64,7 @@ let rec wait_for_restart_key () =
   | 'q' | 'Q' -> false
   | _ -> wait_for_restart_key ()
 
-(* Boucle de rendu principale *)
+(* Boucle principale*)
 let draw flux_jeu =
   let rec loop flux =
     match Flux.(uncons flux) with
@@ -94,7 +93,7 @@ let () =
   Graphics.auto_synchronize false;
 
   let rec main_loop () =
-    (* Creer l'etat initial du jeu - sans ball_pos/ball_vel (c'est dans le flux) *)
+    (* Creer l'etat initial du jeu *)
     let init : Game.etat = {
       bricks = Layout.get_level 0;
       score = 0;

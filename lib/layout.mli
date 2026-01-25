@@ -7,7 +7,7 @@ type config = {
   gap_y       : float;
   start_x     : float;
   start_y     : float;
-  value_fn    : int -> int -> int;           (* row -> col -> value *)
+  value_fn    : int -> int -> int;
   color_fn    : int -> int -> Graphics.color;
 }
 

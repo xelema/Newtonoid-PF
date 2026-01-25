@@ -7,7 +7,7 @@ type config = {
   gap_y       : float;
   start_x     : float;
   start_y     : float;
-  value_fn    : int -> int -> int;           (* row -> col -> value *)
+  value_fn    : int -> int -> int;
   color_fn    : int -> int -> Graphics.color;
 }
 
@@ -63,7 +63,7 @@ let level2_config = {
   gap_y = 4.0;
   start_x = 20.0;
   start_y = 420.0;
-  value_fn = (fun row _col -> (row + 1) * 15);  (* x1.5 points *)
+  value_fn = (fun row _col -> (row + 1) * 15);
   color_fn = (fun row _col ->
     match row mod 5 with
     | 0 -> Graphics.blue
@@ -98,7 +98,7 @@ let make_pyramid config =
   } in
   Brick.build_tree global_box list_bricks
 
-(* Niveau 3 : Damier - une brique sur deux *)
+(* Niveau 3 : Damier*)
 let level3_config = {
   rows = 6;
   cols = 10;
@@ -108,7 +108,7 @@ let level3_config = {
   gap_y = 4.0;
   start_x = 20.0;
   start_y = 400.0;
-  value_fn = (fun row _col -> (row + 1) * 20);  (* x2 points *)
+  value_fn = (fun row _col -> (row + 1) * 20);
   color_fn = (fun row col ->
     if (row + col) mod 2 = 0 then Graphics.red
     else Graphics.cyan
@@ -119,7 +119,6 @@ let make_checkerboard config =
   let list_bricks =
     List.init config.rows (fun row ->
       List.init config.cols (fun col ->
-        (* Seulement les cases ou (row + col) est pair *)
         if (row + col) mod 2 = 0 then
           let x = config.start_x +. float_of_int col *. (config.brick_width +. config.gap_x) in
           let y = config.start_y +. float_of_int row *. (config.brick_height +. config.gap_y) in

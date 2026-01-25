@@ -18,7 +18,7 @@ val contact : (float * float) * (float * float) -> float -> (float * float * flo
 (* Rebond generique sur un rectangle *)
 val rebond : (float * float) * (float * float) -> (float * float * float * float) -> (float * float) * (float * float)
 
-(* Collision cercle (balle) avec AABB (brique) - algorithme efficace *)
+(* Collision cercle (balle) avec AABB (brique)*)
 val circle_aabb_contact : float * float -> float -> Brick.box -> bool
 
 (* Recherche d'une brique en collision dans le quadtree *)

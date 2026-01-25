@@ -18,8 +18,8 @@ val init_ball_vel : float * float
 (* Calcul d'une etape de trajectoire avec gravite *)
 val calcul_step : float -> (float * float) * (float * float) -> (float * float) * (float * float)
 
-(* Flux de trajectoire de la balle (positions/vitesses successives sous gravite) *)
+(* Flux de trajectoire de la balle *)
 val flux_trajectoire : float -> float * float -> float * float -> ((float * float) * (float * float)) Iterator.flux
 
-(* Boucle principale du jeu - retourne un flux de (ball_pos, etat, barre) *)
+(* Boucle principale du jeu *)
 val run : float -> etat -> Barreau.t Iterator.flux -> ((float * float) * etat * Barreau.t) Iterator.flux

@@ -78,7 +78,7 @@ let default = {
   paddle = default_paddle;
   ball = default_ball;
   initial_lives = 3;
-  dt = 1. /. 60.; (* 60 Fps *)
+  dt = 1. /. 60.;
 }
 
 let make 

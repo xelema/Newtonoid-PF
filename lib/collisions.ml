@@ -1,5 +1,3 @@
-
-
 (* Contour de la fenetre *)
 let x_min = Config.default_bounds.x_min
 let x_max = Config.default_bounds.x_max
@@ -42,7 +40,7 @@ let rec find_colliding_brick (pos, vel) tree radius =
   | Brick.Leaf l ->
     let (cx, cy) = pos in
     List.find_opt (fun (b : Brick.brick) ->
-      (* On crée une box à la volée pour correspondre à la brique *)
+      (* On crée une box directement ici pour correspondre à la brique *)
       let b_box = { Brick.xmin = b.x; Brick.xmax = b.x +. b.width; 
                     Brick.ymin = b.y; Brick.ymax = b.y +. b.height } in
       circle_aabb_contact (cx, cy) radius b_box
@@ -68,7 +66,7 @@ let rebond_brick ((cx, cy), (vx, vy)) (brick : Brick.brick) =
   let dx = cx -. closest_x in
   let dy = cy -. closest_y in
 
-  (* Déterminer le côté de collision *)
+  (* Déterminer le coté de collision *)
   let (nv_vx, nv_vy) =
     if abs_float dx > abs_float dy then
       (* Collision horizontale *)
@@ -115,7 +113,6 @@ let rebond_barre ((x, y), (vx, vy)) barre_vel =
   in
   ((x, y), (final_vx, final_vy))
 
-(* TESTS UNITAIRES *)
 (* Tests contact_boite *)
 let%test "contact_boite pas de contact interne" =
   not (contact_boite ((400., 300.), (100., 100.)))

@@ -24,7 +24,7 @@ let rec remove_brick target = function
       Node (box, remove_brick target nw, remove_brick target ne, 
                  remove_brick target sw, remove_brick target se)
 
-(* Verifie si toutes les briques ont ete cassees *)
+(* Verifie si toutes les briques ont ete casses *)
 let rec is_empty = function
   | Empty -> true
   | Leaf [] -> true
@@ -35,7 +35,7 @@ let rec is_empty = function
 
 (* Construction d'un quadtree a partir d'une liste de briques *)
 let rec build_tree box list_bricks =
-  (* Condition d'arrêt : si peu de briques, on fait une feuille *)
+  (* Condition d'arrêt : si suffisament peu de briques, on fait une feuille *)
   if List.length list_bricks <= 4 then
     if list_bricks = [] then Empty else Leaf list_bricks
   else
