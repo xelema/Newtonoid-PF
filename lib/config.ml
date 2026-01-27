@@ -53,12 +53,12 @@ let default_bounds = {
 let default_physics = {
   gravity = 9.81 *. 100.;     
   ball_radius = 10.0;         
-  acceleration_factor = 1.025;
-  max_speed = 900.0;         
+  acceleration_factor = 1.04;
+  max_speed = 1000.0;         
   impulse_coefficient = 0.5; 
-  perturbation = 0.1;        
+  perturbation = 0.15;        
   vx_max = 700.0;             
-  v_securite = 500.0;       
+  v_securite = 600.0;       
 }
 
 let default_paddle = {
@@ -68,8 +68,8 @@ let default_paddle = {
 }
 
 let default_ball = {
-  initial_pos = Vec2.create 400. 300.; 
-  initial_vel = Vec2.create 0. 500.;  
+  initial_pos = Vec2.create 400. 100.; 
+  initial_vel = Vec2.create 0. 600.;  
 }
 
 let default = {
